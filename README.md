@@ -360,10 +360,10 @@ Get all game IDs for a specific player.
 
 <div align="center">
 
-| Network | Contract | Address |
-|:-------:|:---------|:--------|
+| Network | Contract | Address                                      |
+|:-------:|:---------|:---------------------------------------------|
 | **Base Sepolia** | Pyth Entropy | `0x41c9e39574f40ad34c79f1c99b66a45efb830d4c` |
-| **Base Sepolia** | Game Contract | *(Set after deployment)* |
+| **Base Sepolia** | Game Contract | `0x75d30db4bD55D73fAd9f3081dA5aB27f2F14473D`  |
 
 </div>
 
