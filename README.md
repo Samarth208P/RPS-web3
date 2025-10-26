@@ -1,257 +1,686 @@
-🎮 Rock Paper Scissors — Web3 Game
-A provably fair Rock Paper Scissors game built on Base using Pyth Entropy V2. [attached_file:1]
+```
+██████╗  ██████╗  ██████╗██╗  ██╗    ██████╗  █████╗ ██████╗ ███████╗██████╗     ███████╗ ██████╗██╗███████╗███████╗ ██████╗ ██████╗ ███████╗
+██╔══██╗██╔═══██╗██╔════╝██║ ██╔╝    ██╔══██╗██╔══██╗██╔══██╗██╔════╝██╔══██╗    ██╔════╝██╔════╝██║██╔════╝██╔════╝██╔═══██╗██╔══██╗██╔════╝
+██████╔╝██║   ██║██║     █████╔╝     ██████╔╝███████║██████╔╝█████╗  ██████╔╝    ███████╗██║     ██║███████╗███████╗██║   ██║██████╔╝███████╗
+██╔══██╗██║   ██║██║     ██╔═██╗     ██╔═══╝ ██╔══██║██╔═══╝ ██╔══╝  ██╔══██╗    ╚════██║██║     ██║╚════██║╚════██║██║   ██║██╔══██╗╚════██║
+██║  ██║╚██████╔╝╚██████╗██║  ██╗    ██║     ██║  ██║██║     ███████╗██║  ██║    ███████║╚██████╗██║███████║███████║╚██████╔╝██║  ██║███████║
+╚═╝  ╚═╝ ╚═════╝  ╚═════╝╚═╝  ╚═╝    ╚═╝     ╚═╝  ╚═╝╚═╝     ╚══════╝╚═╝  ╚═╝    ╚══════╝ ╚═════╝╚═╝╚══════╝╚══════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝
+```
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)]()
-[![Solidity](https://img.shields.io/badge/Solidity-0.8.28-purple.svg)]()
-[![Base](https://img.shields.io/badge/Base-Sepolia-blue.svg)]() [attached_file:1]
+<div align="center">
 
+### ⚡ **WEB3 EDITION** ⚡
+### **PROVABLY FAIR • BLOCKCHAIN POWERED • PYTH ENTROPY**
 
-✨ Features
-- 🎲 Provably Fair — Verifiable randomness using Pyth Entropy V2. [attached_file:1]
-- ⚡ Lightning Fast — Built on Base L2 for instant gameplay. [attached_file:1]
-- 💰 High Payouts — 95% payout ratio with only 5% house edge. [attached_file:1]
-- 🔒 Secure — ReentrancyGuard and access control patterns. [attached_file:1]
-- 📊 Real-time Stats — Track wins, losses, and history. [attached_file:1]
-- 🎨 Beautiful UI — Animated interface with GSAP and Framer Motion. [attached_file:1]
-- 📱 Responsive — Works on desktop, tablet, and mobile. [attached_file:1]
-- 🌐 Web3 Native — Connect with MetaMask, WalletConnect (Reown), and more. [attached_file:1]
+```
+    ✊ ROCK           ✋ PAPER          ✌️ SCISSORS
+     [ ]              [ ]               [ ]
+```
 
+![License](https://img.shields.io/badge/license-MIT-00ff41?style=for-the-badge&logo=opensourceinitiative&logoColor=white)
+![Solidity](https://img.shields.io/badge/Solidity-0.8.28-ff6b9d?style=for-the-badge&logo=solidity&logoColor=white)
+![Base](https://img.shields.io/badge/Base-Sepolia-0052ff?style=for-the-badge&logo=coinbase&logoColor=white)
+![React](https://img.shields.io/badge/React-18-61dafb?style=for-the-badge&logo=react&logoColor=black)
+![Wagmi](https://img.shields.io/badge/Wagmi-v2-7b3fe4?style=for-the-badge)
+![GSAP](https://img.shields.io/badge/GSAP-Animated-88ce02?style=for-the-badge&logo=greensock&logoColor=black)
 
-🛠️ Tech Stack
-Smart Contracts
-- Language: Solidity 0.8.28. [attached_file:1]
-- Framework: Foundry. [attached_file:1]
-- Libraries: OpenZeppelin Contracts. [attached_file:1]
-- Randomness: Pyth Entropy V2. [attached_file:1]
-- Network: Base Sepolia / Base Mainnet. [attached_file:1]
+---
 
-Frontend
-- Framework: React 18 + Vite 5. [attached_file:1]
-- Styling: TailwindCSS 3.4.17. [attached_file:1]
-- Web3: Wagmi v2 + Viem v2. [attached_file:1]
-- Wallet: Reown (WalletConnect v2). [attached_file:1]
-- Animations: GSAP + Framer Motion. [attached_file:1]
-- State: React Query (TanStack Query). [attached_file:1]
+**[🎮 PLAY NOW](#-quick-start)** • **[📖 DOCS](#-how-to-play)** • **[⚙️ DEPLOY](#-deployment)** • **[🧪 TEST](#-testing)** • **[💎 FEATURES](#-features)**
 
+---
 
-📋 Prerequisites
-- Node.js 18+ and npm or yarn. [attached_file:1]
-- Git. [attached_file:1]
-- Foundry installed (getfoundry.sh). [attached_file:1]
-- MetaMask or compatible Web3 wallet. [attached_file:1]
-- Base Sepolia ETH (from faucet). [attached_file:1]
+</div>
 
+## 🌟 **ENTER THE ARENA**
 
-🚀 Quick Start
-1) Clone
-- git clone https://github.com/yourusername/rock-paper-scissors-web3.git [attached_file:1]
-- cd rock-paper-scissors-web3 [attached_file:1]
+```
+╔══════════════════════════════════════════════════════════════════╗
+║  Welcome to the most EPIC Rock Paper Scissors experience ever   ║
+║  Built on Base L2 with PROVABLY FAIR randomness using Pyth      ║
+║  Entropy V2. Every throw is transparent. Every win is fair.     ║
+║  Every game is IMMORTALIZED on the blockchain.                  ║
+╚══════════════════════════════════════════════════════════════════╝
+```
 
-2) Install Foundry deps
-- forge install OpenZeppelin/openzeppelin-contracts [attached_file:1]
+---
 
-3) Configure environment
-- cp .env.example .env [attached_file:1]
-- Edit .env with: [attached_file:1]
-  PRIVATE_KEY=your_private_key_here  # without 0x prefix [attached_file:1]
-  BASE_SEPOLIA_RPC=https://sepolia.base.org [attached_file:1]
-  BASE_MAINNET_RPC=https://mainnet.base.org [attached_file:1]
-  BASESCAN_API_KEY=your_basescan_api_key  # get from basescan.org/myapikey [attached_file:1]
-  PYTH_ENTROPY_ADDRESS=0x41c9e39574f40ad34c79f1c99b66a45efb830d4c [attached_file:1]
+## 💎 **FEATURES**
 
-4) Build
-- forge build [attached_file:1]
+<div align="center">
 
-5) Test
-- forge test -vv [attached_file:1]
+| Feature | Description | Status |
+|:-------:|:------------|:------:|
+| 🎲 | **Provably Fair Randomness** - Verifiable via Pyth Entropy V2 | ✅ |
+| ⚡ | **Lightning Fast** - Base L2 with <1s finality | ✅ |
+| 💰 | **High Payouts** - 95% payout ratio, only 5% house edge | ✅ |
+| 🔒 | **Battle-Tested Security** - ReentrancyGuard + OpenZeppelin | ✅ |
+| 📊 | **Real-Time Stats** - Track wins, losses, and game history | ✅ |
+| 🎨 | **Stunning Animations** - GSAP + Framer Motion powered UI | ✅ |
+| 📱 | **Universal Access** - Desktop, tablet, mobile responsive | ✅ |
+| 🌐 | **Web3 Native** - MetaMask, WalletConnect, and more | ✅ |
 
-6) Deploy (Base Sepolia)
-- bash scripts/deploy.sh [attached_file:1]
-- Follow prompts: select 1 (Base Sepolia), contracts auto-verify on BaseScan, address saved to frontend/.env.local. [attached_file:1]
+</div>
 
-7) Frontend setup
-- cd frontend && npm install [attached_file:1]
-- cp .env.example .env [attached_file:1]
-- Edit frontend/.env: [attached_file:1]
-  VITE_CHAIN_ID=84532 [attached_file:1]
-  VITE_BASE_SEPOLIA_RPC=https://sepolia.base.org [attached_file:1]
-  VITE_BASESCAN_URL=https://sepolia.basescan.org [attached_file:1]
-  VITE_CONTRACT_ADDRESS=your_deployed_contract_address  # set after deployment [attached_file:1]
-  VITE_PYTH_ENTROPY_ADDRESS=0x41c9e39574f40ad34c79f1c99b66a45efb830d4c [attached_file:1]
-  VITE_WALLETCONNECT_PROJECT_ID=your_reown_project_id  # get from cloud.reown.com [attached_file:1]
-  VITE_APP_NAME=Rock Paper Scissors [attached_file:1]
-  VITE_APP_DESCRIPTION=Provably fair Rock Paper Scissors game on Base [attached_file:1]
+---
 
-8) Run dev server
-- npm run dev and open http://localhost:5173 [attached_file:1]
+## 🛠️ **TECH STACK**
 
+<div align="center">
 
-📁 Project Structure
-rock-paper-scissors-web3/ [attached_file:1]
-├── src/                      # Smart contracts [attached_file:1]
-│   ├── RockPaperScissors.sol # Main game contract [attached_file:1]
-│   └── interfaces/ [attached_file:1]
-│       └── IEntropy.sol      # Pyth Entropy interface [attached_file:1]
-├── script/ [attached_file:1]
-│   └── Deploy.s.sol          # Deployment script [attached_file:1]
-├── test/ [attached_file:1]
-│   └── RockPaperScissors.t.sol # Contract tests [attached_file:1]
-├── frontend/                 # React app [attached_file:1]
-│   ├── src/ [attached_file:1]
-│   │   ├── components/       # UI components [attached_file:1]
-│   │   ├── config/           # Configuration [attached_file:1]
-│   │   ├── hooks/            # React hooks [attached_file:1]
-│   │   ├── utils/            # Utilities [attached_file:1]
-│   │   └── styles/           # Styles [attached_file:1]
-│   ├── public/               # Static assets [attached_file:1]
-│   └── index.html [attached_file:1]
-├── scripts/                  # Deploy/utility scripts [attached_file:1]
-│   ├── deploy.sh             # Automated deployment [attached_file:1]
-│   └── clean.sh              # Clean build artifacts [attached_file:1]
-├── foundry.toml              # Foundry config [attached_file:1]
-└── README.md [attached_file:1]
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    ⚔️ SMART CONTRACTS ⚔️                    │
+├─────────────────────────────────────────────────────────────┤
+│  Language      │ Solidity 0.8.28                            │
+│  Framework     │ Foundry                                    │
+│  Libraries     │ OpenZeppelin Contracts                     │
+│  Randomness    │ Pyth Entropy V2                            │
+│  Network       │ Base Sepolia / Base Mainnet                │
+└─────────────────────────────────────────────────────────────┘
 
+┌─────────────────────────────────────────────────────────────┐
+│                     🎮 FRONTEND TECH 🎮                     │
+├─────────────────────────────────────────────────────────────┤
+│  Framework     │ React 18 + Vite 5                          │
+│  Styling       │ TailwindCSS 3.4.17                         │
+│  Web3          │ Wagmi v2 + Viem v2                         │
+│  Wallet        │ Reown (WalletConnect v2)                   │
+│  Animations    │ GSAP + Framer Motion                       │
+│  State Mgmt    │ React Query (TanStack Query)               │
+└─────────────────────────────────────────────────────────────┘
+```
 
-🎮 How to Play
-1) Connect Wallet — Click “Connect Wallet” and link your Web3 wallet. [attached_file:1]
-2) Choose Amount — Enter bet amount (0.001–1 ETH). [attached_file:1]
-3) Select Choice — Pick Rock ✊, Paper ✋, or Scissors ✌️. [attached_file:1]
-4) Play Game — Click “Play Game” and confirm the transaction. [attached_file:1]
-5) Wait for Result — Uses Pyth Entropy for fair randomness. [attached_file:1]
-6) See Outcome — Win 1.95x, lose stake, or draw refund per settings. [attached_file:1]
+</div>
 
-Game Rules
-- Rock beats Scissors. [attached_file:1]
-- Paper beats Rock. [attached_file:1]
-- Scissors beats Paper. [attached_file:1]
-- Draw refunds per contract configuration. [attached_file:1]
-- House Edge: 5% (95% payout on wins). [attached_file:1]
+---
 
+## 📋 **PRE-FLIGHT CHECKLIST**
 
-🔧 Smart Contract Details
-Main Functions [attached_file:1]
+```
+[ ] Node.js 18 or higher
+[ ] npm or yarn package manager
+[ ] Git installed
+[ ] Foundry (getfoundry.sh)
+[ ] MetaMask or Web3 wallet
+[ ] Base Sepolia ETH (from faucet)
+```
 
-playGame(Choice _choice, bytes32 _userRandomNumber) [attached_file:1]
-- Starts a new game with your choice and a user random number. [attached_file:1]
-- Parameters: _choice ∈ {1=Rock, 2=Paper, 3=Scissors}, _userRandomNumber is a bytes32 commitment. [attached_file:1]
-- Value: Bet amount + entropy fee (auto-calculated). [attached_file:1]
+> **💡 PRO TIP:** Get Base Sepolia ETH from the [official faucet](https://www.coinbase.com/faucets/base-sepolia-faucet)
 
-revealGame(uint256 _gameId, bytes32 _userRandomNumber, bytes32 _providerRevelation) [attached_file:1]
-- Reveals game result using Pyth Entropy revelation. [attached_file:1]
-- Parameters: _gameId from playGame, original _userRandomNumber, provider revelation. [attached_file:1]
+---
 
-getStats() [attached_file:1]
-- Returns total games, wins, losses, draws, and house balance. [attached_file:1]
+## 🚀 **QUICK START**
 
-getPlayerGames(address _player) [attached_file:1]
-- Returns all game IDs for a player. [attached_file:1]
+<div align="center">
 
-Contract Addresses [attached_file:1]
-- Base Sepolia — Pyth Entropy: 0x41c9e39574f40ad34c79f1c99b66a45efb830d4c [attached_file:1]
-- Base Sepolia — Game Contract: set post-deployment. [attached_file:1]
+```
+███████╗████████╗ █████╗ ██████╗ ████████╗    ██╗  ██╗███████╗██████╗ ███████╗██╗
+██╔════╝╚══██╔══╝██╔══██╗██╔══██╗╚══██╔══╝    ██║  ██║██╔════╝██╔══██╗██╔════╝██║
+███████╗   ██║   ███████║██████╔╝   ██║       ███████║█████╗  ██████╔╝█████╗  ██║
+╚════██║   ██║   ██╔══██║██╔══██╗   ██║       ██╔══██║██╔══╝  ██╔══██╗██╔══╝  ╚═╝
+███████║   ██║   ██║  ██║██║  ██║   ██║       ██║  ██║███████╗██║  ██║███████╗██╗
+╚══════╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝       ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝
+```
 
+</div>
 
-🧪 Testing
-- Run all: forge test -vv [attached_file:1]
-- Run by name: forge test --match-test testPlayGame -vvvv [attached_file:1]
-- Gas report: forge test --gas-report [attached_file:1]
-- Coverage: forge coverage [attached_file:1]
+### **STEP 1️⃣ : CLONE THE REPOSITORY**
 
+```bash
+git clone https://github.com/yourusername/rock-paper-scissors-web3.git
+cd rock-paper-scissors-web3
+```
 
-🚢 Deployment
-Automated (Base Sepolia) [attached_file:1]
-- bash scripts/deploy.sh [attached_file:1]
+### **STEP 2️⃣ : INSTALL FOUNDRY DEPENDENCIES**
 
-Manual [attached_file:1]
-- forge script script/Deploy.s.sol:DeployRockPaperScissors \ [attached_file:1]
-  --rpc-url $BASE_SEPOLIA_RPC \ [attached_file:1]
-  --broadcast \ [attached_file:1]
-  --verify -vvvv [attached_file:1]
+```bash
+forge install OpenZeppelin/openzeppelin-contracts
+```
 
-Fund the House [attached_file:1]
-- cast send <CONTRACT_ADDRESS> "fundHouse()" --value 1ether --rpc-url $BASE_SEPOLIA_RPC --private-key $PRIVATE_KEY [attached_file:1]
+### **STEP 3️⃣ : CONFIGURE ENVIRONMENT**
 
+Create `.env` in root:
 
-🧹 Maintenance
-- Clean artifacts: bash scripts/clean.sh [attached_file:1]
-- Update frontend: cd frontend && npm update [attached_file:1]
-- Update Foundry deps: forge update [attached_file:1]
+```bash
+cp .env.example .env
+```
 
+Add your secrets:
 
-🔐 Security
-- ReentrancyGuard protection. [attached_file:1]
-- Ownable access control. [attached_file:1]
-- Input validation on all functions. [attached_file:1]
-- Safe arithmetic via Solidity 0.8+. [attached_file:1]
-- Verifiable randomness via Pyth Entropy. [attached_file:1]
-- Transparent on-chain logic. [attached_file:1]
+```env
+# 🔑 Private Key (NO 0x prefix!)
+PRIVATE_KEY=your_private_key_here
 
-Audit Status
-- Not professionally audited; use at your own risk. [attached_file:1]
+# 🌐 RPC Endpoints
+BASE_SEPOLIA_RPC=https://sepolia.base.org
+BASE_MAINNET_RPC=https://mainnet.base.org
 
+# 🔍 BaseScan API Key
+BASESCAN_API_KEY=your_basescan_api_key
 
-📊 Game Economics
-- Minimum Bet: 0.001 ETH [attached_file:1]
-- Maximum Bet: 1 ETH [attached_file:1]
-- House Edge: 5% [attached_file:1]
-- Payout Ratio: 95% [attached_file:1]
-- Win Multiplier: 1.95x [attached_file:1]
-- Draw Fee: 0.0001 ETH (if draw mode charges) [attached_file:1]
+# 🎲 Pyth Entropy Address (Base Sepolia)
+PYTH_ENTROPY_ADDRESS=0x41c9e39574f40ad34c79f1c99b66a45efb830d4c
+```
 
-Example Payouts [attached_file:1]
-| Bet Amount | Win Payout | Net Profit |
-|------------|------------|------------|
-| 0.01 ETH   | 0.0195 ETH | 0.0095 ETH |
-| 0.1 ETH    | 0.195 ETH  | 0.095 ETH  |
-| 1 ETH      | 1.95 ETH   | 0.95 ETH   | [attached_file:1]
+### **STEP 4️⃣ : BUILD CONTRACTS**
 
+```bash
+forge build
+```
 
-🐛 Troubleshooting
-Common Issues and Fixes [attached_file:1]
+### **STEP 5️⃣ : RUN TESTS**
 
-- Deployment fails: Check PRIVATE_KEY and RPC URL; ensure enough gas. [attached_file:1]
-- Frontend not connecting: Verify CONTRACT_ADDRESS in frontend/.env and correct Base Sepolia network. [attached_file:1]
-- Revert “InsufficientHouseBalance”: Fund the house contract with cast send. [attached_file:1]
-- “Invalid Choice” errors: Choice must be 1 (Rock), 2 (Paper), or 3 (Scissors). [attached_file:1]
-- Frontend build errors: cd frontend; remove node_modules and lockfile; reinstall. [attached_file:1]
+```bash
+forge test -vv
+```
 
+### **STEP 6️⃣ : DEPLOY TO BASE SEPOLIA**
 
-🤝 Contributing
-1) Fork the repo. [attached_file:1]
-2) Create a branch: git checkout -b feature/AmazingFeature [attached_file:1]
-3) Commit: git commit -m "Add some AmazingFeature" [attached_file:1]
-4) Push: git push origin feature/AmazingFeature [attached_file:1]
-5) Open a Pull Request. [attached_file:1]
+```bash
+bash scripts/deploy.sh
+```
 
+> The script will guide you through network selection and auto-verify on BaseScan!
 
-📝 License
-- MIT License (see LICENSE). [attached_file:1]
+### **STEP 7️⃣ : SETUP FRONTEND**
 
+```bash
+cd frontend
+npm install
+cp .env.example .env
+```
 
-🙏 Acknowledgments
-- Pyth Network (Entropy V2). [attached_file:1]
-- Base (L2). [attached_file:1]
-- OpenZeppelin (contracts). [attached_file:1]
-- Foundry (tooling). [attached_file:1]
-- Wagmi (React hooks). [attached_file:1]
-- Reown (WalletConnect). [attached_file:1]
+Configure `frontend/.env`:
 
+```env
+# ⛓️ Chain Configuration
+VITE_CHAIN_ID=84532
+VITE_BASE_SEPOLIA_RPC=https://sepolia.base.org
+VITE_BASESCAN_URL=https://sepolia.basescan.org
 
-📞 Support
-- Issues: GitHub Issues in this repo. [attached_file:1]
-- Discussions: GitHub Discussions in this repo. [attached_file:1]
-- Twitter: @yourhandle. [attached_file:1]
+# 📝 Contract Addresses
+VITE_CONTRACT_ADDRESS=your_deployed_contract_address
+VITE_PYTH_ENTROPY_ADDRESS=0x41c9e39574f40ad34c79f1c99b66a45efb830d4c
 
+# 🔗 WalletConnect
+VITE_WALLETCONNECT_PROJECT_ID=your_reown_project_id
 
-🔗 Links
-- Live Demo: https://rps-game.xyz [attached_file:1]
-- Base Sepolia Explorer: https://sepolia.basescan.org [attached_file:1]
-- Pyth Entropy Docs: https://docs.pyth.network/entropy [attached_file:1]
-- Base Docs: https://docs.base.org [attached_file:1]
+# 🎮 App Metadata
+VITE_APP_NAME=Rock Paper Scissors
+VITE_APP_DESCRIPTION=Provably fair Rock Paper Scissors game on Base
+```
 
+### **STEP 8️⃣ : LAUNCH THE GAME**
 
-⚠️ Disclaimer
-This is a gambling game; play responsibly and only with funds you can afford to lose, as the house has a mathematical edge. [attached_file:1]
+```bash
+npm run dev
+```
 
+**🎉 Open [http://localhost:5173](http://localhost:5173) and START PLAYING!**
 
-— Built with ❤️ by Your Name • Powered by Pyth Entropy • Base • React • Foundry [attached_file:1]
+---
+
+## 📁 **PROJECT STRUCTURE**
+
+```
+rock-paper-scissors-web3/
+│
+├─ 📜 src/                          # Smart Contracts
+│  ├─ RockPaperScissors.sol        # Main game contract
+│  └─ interfaces/
+│     └─ IEntropy.sol               # Pyth Entropy interface
+│
+├─ 🚀 script/
+│  └─ Deploy.s.sol                  # Deployment script
+│
+├─ 🧪 test/
+│  └─ RockPaperScissors.t.sol      # Contract tests
+│
+├─ 🎨 frontend/                     # React Frontend
+│  ├─ src/
+│  │  ├─ components/                # UI components
+│  │  ├─ config/                    # Config files
+│  │  ├─ hooks/                     # Custom React hooks
+│  │  ├─ utils/                     # Utility functions
+│  │  └─ styles/                    # CSS styles
+│  ├─ public/                       # Static assets
+│  └─ index.html
+│
+├─ ⚙️ scripts/                      # Automation scripts
+│  ├─ deploy.sh                     # Auto-deploy script
+│  └─ clean.sh                      # Clean artifacts
+│
+├─ foundry.toml                     # Foundry config
+└─ README.md                        # This file!
+```
+
+---
+
+## 🎮 **HOW TO PLAY**
+
+<div align="center">
+
+```
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                    🎯 GAMEPLAY FLOW 🎯                       ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+     1️⃣  CONNECT WALLET
+         │
+         ▼
+     2️⃣  CHOOSE BET AMOUNT (0.001 - 1 ETH)
+         │
+         ▼
+     3️⃣  SELECT YOUR MOVE
+         │
+        / │ \
+       /  │  \
+      ✊  ✋  ✌️
+    ROCK PAPER SCISSORS
+         │
+         ▼
+     4️⃣  CONFIRM TRANSACTION
+         │
+         ▼
+     5️⃣  WAIT FOR PYTH ENTROPY
+         │
+         ▼
+     6️⃣  RECEIVE RESULT + PAYOUT!
+         │
+        / \
+       /   \
+   WIN 1.95x  LOSE STAKE
+```
+
+</div>
+
+### **⚔️ BATTLE RULES**
+
+```
+╔═══════════════════╦═══════════════════╦═══════════════════╗
+║   YOUR MOVE       ║   BEATS           ║   LOSES TO        ║
+╠═══════════════════╬═══════════════════╬═══════════════════╣
+║   ✊ ROCK         ║   ✌️ SCISSORS     ║   ✋ PAPER        ║
+║   ✋ PAPER        ║   ✊ ROCK         ║   ✌️ SCISSORS     ║
+║   ✌️ SCISSORS     ║   ✋ PAPER        ║   ✊ ROCK         ║
+╚═══════════════════╩═══════════════════╩═══════════════════╝
+
+🤝 DRAW = Same choice (refund based on settings)
+💰 HOUSE EDGE = 5% (95% payout on wins)
+```
+
+---
+
+## 🔧 **SMART CONTRACT API**
+
+### **`playGame(Choice _choice, bytes32 _userRandomNumber)`**
+
+Start a new game with your choice and random seed.
+
+**Parameters:**
+- `_choice`: `1` = Rock, `2` = Paper, `3` = Scissors
+- `_userRandomNumber`: Random bytes32 for entropy commitment
+
+**Value:** Bet amount + Entropy fee (auto-calculated)
+
+---
+
+### **`revealGame(uint256 _gameId, bytes32 _userRandomNumber, bytes32 _providerRevelation)`**
+
+Reveal the game result using Pyth Entropy.
+
+**Parameters:**
+- `_gameId`: Game ID from `playGame`
+- `_userRandomNumber`: Your original random number
+- `_providerRevelation`: Pyth's revelation data
+
+---
+
+### **`getStats()`**
+
+Get global game statistics.
+
+**Returns:**
+- Total games played
+- Total wins
+- Total losses
+- Total draws
+- House balance
+
+---
+
+### **`getPlayerGames(address _player)`**
+
+Get all game IDs for a specific player.
+
+---
+
+## 📍 **CONTRACT ADDRESSES**
+
+<div align="center">
+
+| Network | Contract | Address |
+|:-------:|:---------|:--------|
+| **Base Sepolia** | Pyth Entropy | `0x41c9e39574f40ad34c79f1c99b66a45efb830d4c` |
+| **Base Sepolia** | Game Contract | *(Set after deployment)* |
+
+</div>
+
+---
+
+## 🧪 **TESTING**
+
+```bash
+# Run all tests
+forge test -vv
+
+# Run specific test
+forge test --match-test testPlayGame -vvvv
+
+# Gas report
+forge test --gas-report
+
+# Coverage
+forge coverage
+```
+
+---
+
+## 🚢 **DEPLOYMENT**
+
+### **Automated Deployment (Base Sepolia)**
+
+```bash
+bash scripts/deploy.sh
+```
+
+### **Manual Deployment**
+
+```bash
+forge script script/Deploy.s.sol:DeployRockPaperScissors \
+  --rpc-url $BASE_SEPOLIA_RPC \
+  --broadcast \
+  --verify \
+  -vvvv
+```
+
+### **💰 Fund the House**
+
+After deployment, fund the contract so it can pay winners:
+
+```bash
+cast send <CONTRACT_ADDRESS> "fundHouse()" \
+  --value 1ether \
+  --rpc-url $BASE_SEPOLIA_RPC \
+  --private-key $PRIVATE_KEY
+```
+
+---
+
+## 📊 **GAME ECONOMICS**
+
+<div align="center">
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      💎 PAYOUTS 💎                          │
+├─────────────────────────────────────────────────────────────┤
+│  MIN BET       │ 0.001 ETH                                  │
+│  MAX BET       │ 1 ETH                                      │
+│  HOUSE EDGE    │ 5%                                         │
+│  PAYOUT RATIO  │ 95%                                        │
+│  WIN MULTIPLIER│ 1.95x                                      │
+│  DRAW FEE      │ 0.0001 ETH (if enabled)                    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+</div>
+
+### **💰 Example Payouts**
+
+| Bet Amount | Win Payout | Net Profit | ROI |
+|:----------:|:----------:|:----------:|:---:|
+| 0.01 ETH | 0.0195 ETH | 0.0095 ETH | **95%** |
+| 0.1 ETH | 0.195 ETH | 0.095 ETH | **95%** |
+| 1 ETH | 1.95 ETH | 0.95 ETH | **95%** |
+
+---
+
+## 🎨 **UI STYLING & ANIMATIONS**
+
+### **Glassmorphism Card**
+
+```css
+/* Apply to containers */
+.glass-card {
+  @apply rounded-2xl border border-white/10 bg-white/5 
+         backdrop-blur-xl shadow-xl p-6;
+}
+```
+
+### **Gradient Title**
+
+```css
+/* Apply to h1 headers */
+.gradient-title {
+  @apply text-3xl md:text-5xl font-extrabold 
+         bg-gradient-to-r from-indigo-400 via-sky-400 to-emerald-400 
+         bg-clip-text text-transparent tracking-tight;
+}
+```
+
+### **Action Button**
+
+```css
+/* Apply to primary buttons */
+.action-button {
+  @apply px-5 py-2.5 rounded-lg font-medium 
+         bg-indigo-500 hover:bg-indigo-400 
+         active:scale-[0.98] text-white 
+         shadow-md shadow-indigo-500/25 
+         transition-all duration-200;
+}
+```
+
+### **Framer Motion Animations**
+
+```javascript
+// Page mount animation
+const pageVariants = {
+  hidden: { opacity: 0, y: 12 },
+  show: { 
+    opacity: 1, 
+    y: 0, 
+    transition: { 
+      duration: 0.4, 
+      ease: [0.22, 1, 0.36, 1] 
+    }
+  }
+};
+
+// Staggered list animation
+const listVariants = {
+  parent: {
+    staggerChildren: 0.06,
+    delayChildren: 0.08
+  },
+  child: {
+    hidden: { opacity: 0, y: 8 },
+    show: { 
+      opacity: 1, 
+      y: 0, 
+      transition: { duration: 0.25 }
+    }
+  }
+};
+
+// Hover micro-interaction
+const hoverVariants = {
+  rest: { y: 0 },
+  hover: { 
+    y: -2, 
+    transition: { 
+      type: "spring", 
+      stiffness: 400, 
+      damping: 24 
+    }
+  }
+};
+```
+
+### **GSAP Hero Timeline**
+
+```javascript
+// Hero section entrance
+gsap.timeline()
+  .from(".hero-title", { opacity: 0, y: 10, duration: 0.4 })
+  .from(".hero-subtitle", { opacity: 0, y: 8, duration: 0.35 }, "-=0.2")
+  .from(".hero-cta", { opacity: 0, y: 6, duration: 0.3 }, "-=0.2");
+```
+
+> **💡 ANIMATION TIP:** Keep animations between 200-450ms and respect `prefers-reduced-motion`!
+
+---
+
+## 🧹 **MAINTENANCE**
+
+```bash
+# Clean build artifacts
+bash scripts/clean.sh
+
+# Update frontend dependencies
+cd frontend && npm update
+
+# Update Foundry dependencies
+forge update
+```
+
+---
+
+## 🐛 **TROUBLESHOOTING**
+
+<div align="center">
+
+| Issue | Solution |
+|:------|:---------|
+| ❌ **Deployment fails** | Check `PRIVATE_KEY`, RPC URL, and gas funds |
+| ❌ **Frontend not connecting** | Verify `CONTRACT_ADDRESS` and network in `.env` |
+| ❌ **InsufficientHouseBalance** | Fund the house with `cast send` command |
+| ❌ **Invalid Choice error** | Only `1`, `2`, or `3` are valid choices |
+| ❌ **Frontend build errors** | Delete `node_modules` and reinstall deps |
+
+</div>
+
+---
+
+## 🔐 **SECURITY**
+
+```
+✅ ReentrancyGuard protection
+✅ Ownable access control
+✅ Input validation on all functions
+✅ SafeMath operations (Solidity 0.8+)
+✅ Verifiable randomness via Pyth Entropy
+✅ Transparent on-chain logic
+```
+
+### **⚠️ AUDIT STATUS**
+
+> **This contract has NOT been professionally audited. Use at your own risk.**
+>
+> Play responsibly and only risk funds you can afford to lose.
+
+---
+
+## 🤝 **CONTRIBUTING**
+
+We welcome contributions! Follow these steps:
+
+1. **Fork** the repository
+2. **Create** your feature branch (`git checkout -b feature/AmazingFeature`)
+3. **Commit** your changes (`git commit -m 'Add some AmazingFeature'`)
+4. **Push** to the branch (`git push origin feature/AmazingFeature`)
+5. **Open** a Pull Request
+
+---
+
+## 📝 **LICENSE**
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 **ACKNOWLEDGMENTS**
+
+<div align="center">
+
+Special thanks to the amazing teams behind:
+
+**[Pyth Network](https://pyth.network)** • Entropy V2 Randomness  
+**[Base](https://base.org)** • L2 Infrastructure  
+**[OpenZeppelin](https://openzeppelin.com)** • Secure Contract Libraries  
+**[Foundry](https://getfoundry.sh)** • Development Tooling  
+**[Wagmi](https://wagmi.sh)** • React Web3 Hooks  
+**[Reown](https://reown.com)** • WalletConnect Integration
+
+</div>
+
+---
+
+## 📞 **SUPPORT & COMMUNITY**
+
+<div align="center">
+
+**[🐛 Report Issues](https://github.com/yourusername/rock-paper-scissors-web3/issues)** • **[💬 Discussions](https://github.com/yourusername/rock-paper-scissors-web3/discussions)** • **[🐦 Twitter](https://twitter.com/yourhandle)**
+
+</div>
+
+---
+
+## 🔗 **LINKS**
+
+<div align="center">
+
+**[🎮 Live Demo](https://rps-game.xyz)** | **[🔍 BaseScan](https://sepolia.basescan.org)** | **[📚 Pyth Docs](https://docs.pyth.network/entropy)** | **[📖 Base Docs](https://docs.base.org)**
+
+</div>
+
+---
+
+<div align="center">
+
+```
+╔═══════════════════════════════════════════════════════════════╗
+║                                                               ║
+║   ██████╗ ███████╗ █████╗ ██████╗ ██╗   ██╗    ████████╗ ██████╗  ║
+║   ██╔══██╗██╔════╝██╔══██╗██╔══██╗╚██╗ ██╔╝    ╚══██╔══╝██╔═══██╗ ║
+║   ██████╔╝█████╗  ███████║██║  ██║ ╚████╔╝        ██║   ██║   ██║ ║
+║   ██╔══██╗██╔══╝  ██╔══██║██║  ██║  ╚██╔╝         ██║   ██║   ██║ ║
+║   ██║  ██║███████╗██║  ██║██████╔╝   ██║          ██║   ╚██████╔╝ ║
+║   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═════╝    ╚═╝          ╚═╝    ╚═════╝  ║
+║                                                               ║
+║   ██████╗ ██╗      █████╗ ██╗   ██╗    ███╗   ██╗ ██████╗ ██╗    ██╗ ║
+║   ██╔══██╗██║     ██╔══██╗╚██╗ ██╔╝    ████╗  ██║██╔═══██╗██║    ██║ ║
+║   ██████╔╝██║     ███████║ ╚████╔╝     ██╔██╗ ██║██║   ██║██║ █╗ ██║ ║
+║   ██╔═══╝ ██║     ██╔══██║  ╚██╔╝      ██║╚██╗██║██║   ██║██║███╗██║ ║
+║   ██║     ███████╗██║  ██║   ██║       ██║ ╚████║╚██████╔╝╚███╔███╔╝ ║
+║   ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝       ╚═╝  ╚═══╝ ╚═════╝  ╚══╝╚══╝  ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
+```
+
+**Built with ❤️ and ⚡ by the Web3 Gaming Community**
+
+**Powered by:** Pyth Entropy • Base • React • Foundry
+
+---
+
+⚠️ **DISCLAIMER:** This is a gambling game. Play responsibly.  
+The house always has a mathematical edge. Only risk funds you can afford to lose.
+
+---
+
+**© 2025 Rock Paper Scissors Web3 • All Rights Reserved**
+
+</div>
