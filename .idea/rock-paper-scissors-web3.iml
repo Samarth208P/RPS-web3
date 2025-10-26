@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="WEB_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/.tmp" />
+      <excludeFolder url="file://$MODULE_DIR$/temp" />
+      <excludeFolder url="file://$MODULE_DIR$/tmp" />
+      <excludeFolder url="file://$MODULE_DIR$/lib/pyth-crosschain/lazer/contracts/aptos/build" />
+      <excludeFolder url="file://$MODULE_DIR$/lib/pyth-crosschain/lazer/contracts/sui/build" />
+      <excludeFolder url="file://$MODULE_DIR$/lib/pyth-crosschain/target_chains/aptos/contracts/build" />
+      <excludeFolder url="file://$MODULE_DIR$/lib/pyth-crosschain/target_chains/aptos/profiling/build" />
+      <excludeFolder url="file://$MODULE_DIR$/lib/pyth-crosschain/target_chains/sui/contracts/build" />
+      <excludeFolder url="file://$MODULE_DIR$/lib/pyth-crosschain/target_chains/sui/vendor/wormhole_iota_mainnet/examples/coins/build" />
+      <excludeFolder url="file://$MODULE_DIR$/lib/pyth-crosschain/target_chains/sui/vendor/wormhole_iota_mainnet/examples/core_messages/build" />
+      <excludeFolder url="file://$MODULE_DIR$/lib/pyth-crosschain/target_chains/sui/vendor/wormhole_iota_mainnet/examples/templates/wrapped_coin/build" />
+      <excludeFolder url="file://$MODULE_DIR$/lib/pyth-crosschain/target_chains/sui/vendor/wormhole_iota_mainnet/token_bridge/build" />
+      <excludeFolder url="file://$MODULE_DIR$/lib/pyth-crosschain/target_chains/sui/vendor/wormhole_iota_mainnet/wormhole/build" />
+      <excludeFolder url="file://$MODULE_DIR$/lib/pyth-crosschain/target_chains/sui/vendor/wormhole_iota_testnet/examples/coins/build" />
+      <excludeFolder url="file://$MODULE_DIR$/lib/pyth-crosschain/target_chains/sui/vendor/wormhole_iota_testnet/examples/core_messages/build" />
+      <excludeFolder url="file://$MODULE_DIR$/lib/pyth-crosschain/target_chains/sui/vendor/wormhole_iota_testnet/examples/templates/wrapped_coin/build" />
+      <excludeFolder url="file://$MODULE_DIR$/lib/pyth-crosschain/target_chains/sui/vendor/wormhole_iota_testnet/token_bridge/build" />
+      <excludeFolder url="file://$MODULE_DIR$/lib/pyth-crosschain/target_chains/sui/vendor/wormhole_iota_testnet/wormhole/build" />
+      <excludeFolder url="file://$MODULE_DIR$/lib/pyth-crosschain/target_chains/sui/vendor/wormhole_movement_m2_devnet/examples/coins/build" />
+      <excludeFolder url="file://$MODULE_DIR$/lib/pyth-crosschain/target_chains/sui/vendor/wormhole_movement_m2_devnet/examples/core_messages/build" />
+      <excludeFolder url="file://$MODULE_DIR$/lib/pyth-crosschain/target_chains/sui/vendor/wormhole_movement_m2_devnet/examples/templates/wrapped_coin/build" />
+      <excludeFolder url="file://$MODULE_DIR$/lib/pyth-crosschain/target_chains/sui/vendor/wormhole_movement_m2_devnet/token_bridge/build" />
+      <excludeFolder url="file://$MODULE_DIR$/lib/pyth-crosschain/target_chains/sui/vendor/wormhole_movement_m2_devnet/wormhole/build" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>

@@ -1,0 +1,143 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    * {
+        @apply border-white/20;
+    }
+
+    body {
+        @apply bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white;
+        font-family: 'Inter', sans-serif;
+        min-height: 100vh;
+        overflow-x: hidden;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Poppins', sans-serif;
+    }
+}
+
+@layer components {
+    .glass {
+        @apply bg-white/10 backdrop-blur-lg border border-white/20;
+    }
+
+    .glass-dark {
+        @apply bg-black/30 backdrop-blur-lg border border-white/10;
+    }
+
+    .btn-primary {
+        @apply bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700
+        text-white font-bold py-3 px-6 rounded-xl transition-all duration-300
+        transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl;
+    }
+
+    .btn-secondary {
+        @apply bg-white/10 hover:bg-white/20 backdrop-blur-lg border border-white/20
+        text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300
+        transform hover:scale-105 active:scale-95;
+    }
+
+    .btn-success {
+        @apply bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700
+        text-white font-bold py-3 px-6 rounded-xl transition-all duration-300
+        transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl;
+    }
+
+    .btn-danger {
+        @apply bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700
+        text-white font-bold py-3 px-6 rounded-xl transition-all duration-300
+        transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl;
+    }
+
+    .card {
+        @apply glass rounded-2xl p-6 shadow-xl;
+    }
+
+    .input-field {
+        @apply bg-white/5 border border-white/20 rounded-lg px-4 py-3 text-white
+        placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500
+        transition-all duration-300;
+    }
+
+    .choice-button {
+        @apply relative overflow-hidden rounded-2xl p-8 transform transition-all duration-300
+        hover:scale-110 active:scale-95 cursor-pointer glass-dark
+        hover:shadow-2xl hover:shadow-blue-500/50;
+    }
+
+    .choice-button.selected {
+        @apply ring-4 ring-blue-500 shadow-2xl shadow-blue-500/50;
+    }
+
+    .choice-button.winner {
+        @apply ring-4 ring-green-500 shadow-2xl shadow-green-500/50 animate-pulse;
+    }
+
+    .choice-button.loser {
+        @apply ring-4 ring-red-500 shadow-2xl shadow-red-500/50 opacity-50;
+    }
+}
+
+@layer utilities {
+    .text-shadow {
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .text-glow {
+        text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+    }
+
+    .animate-gradient {
+        background-size: 200% 200%;
+        animation: gradient 3s ease infinite;
+    }
+
+    @keyframes gradient {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, #3b82f6, #8b5cf6);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(to bottom, #2563eb, #7c3aed);
+}
+
+/* Loading animation */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Particle background */
+.particles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: -1;
+}
+
+.particle {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+}

@@ -1,0 +1,21 @@
+{
+  "name": "rock-paper-scissors-web3",
+  "version": "1.0.0",
+  "description": "🎮 Rock Paper Scissors — Web3 Game\r A provably fair Rock Paper Scissors game built on Base using Pyth Entropy V2. [attached_file:1]",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "private": true,
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@pythnetwork/entropy-sdk-solidity": "^2.1.0"
+  }
+}
