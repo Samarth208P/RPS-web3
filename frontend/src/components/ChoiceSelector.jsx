@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { CHOICES } from '../config/contracts'
+import { Sparkles } from 'lucide-react'
 
 const choices = [
     {
@@ -7,96 +8,131 @@ const choices = [
         name: 'Rock',
         emoji: '✊',
         color: 'from-red-500 to-orange-600',
-        description: 'Crushes Scissors'
+        hoverGlow: 'shadow-red-500/50',
+        description: 'Crushes Scissors',
     },
     {
         id: CHOICES.PAPER,
         name: 'Paper',
         emoji: '✋',
         color: 'from-blue-500 to-cyan-600',
-        description: 'Covers Rock'
+        hoverGlow: 'shadow-blue-500/50',
+        description: 'Covers Rock',
     },
     {
         id: CHOICES.SCISSORS,
         name: 'Scissors',
         emoji: '✌️',
         color: 'from-purple-500 to-pink-600',
-        description: 'Cuts Paper'
+        hoverGlow: 'shadow-purple-500/50',
+        description: 'Cuts Paper',
     },
 ]
 
 const ChoiceSelector = ({ selected, onSelect, disabled }) => {
     return (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 my-8">
-            {choices.map((choice, index) => (
-                <motion.button
-                    key={choice.id}
-                    onClick={() => !disabled && onSelect(choice.id)}
-                    disabled={disabled}
-                    className={`choice-button ${selected === choice.id ? 'selected' : ''}`}
-                    initial={{ opacity: 0, y: 50 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    whileHover={{ scale: disabled ? 1 : 1.05 }}
-                    whileTap={{ scale: disabled ? 1 : 0.95 }}
-                >
-                    {/* Glow effect */}
-                    {selected === choice.id && (
-                        <motion.div
-                            className={`absolute inset-0 bg-gradient-to-r ${choice.color} opacity-20 blur-xl rounded-2xl`}
-                            animate={{
-                                scale: [1, 1.2, 1],
-                                opacity: [0.2, 0.3, 0.2],
-                            }}
-                            transition={{
-                                duration: 2,
-                                repeat: Infinity,
-                            }}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {choices.map((choice) => {
+                const isSelected = selected === choice.id
+
+                return (
+                    <motion.button
+                        key={choice.id}
+                        onClick={() => !disabled && onSelect(choice.id)}
+                        disabled={disabled}
+                        className={`relative group overflow-hidden rounded-2xl p-6 transition-all duration-300 ${
+                            disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                        }`}
+                        whileHover={!disabled ? { scale: 1.05, y: -5 } : {}}
+                        whileTap={!disabled ? { scale: 0.98 } : {}}
+                        animate={
+                            isSelected
+                                ? {
+                                    boxShadow: [
+                                        '0 0 20px rgba(168, 85, 247, 0.4)',
+                                        '0 0 40px rgba(168, 85, 247, 0.6)',
+                                        '0 0 20px rgba(168, 85, 247, 0.4)',
+                                    ],
+                                }
+                                : {}
+                        }
+                        transition={{
+                            boxShadow: { duration: 2, repeat: Infinity },
+                        }}
+                    >
+                        {/* Animated Background */}
+                        <div
+                            className={`absolute inset-0 bg-gradient-to-br ${choice.color} opacity-${
+                                isSelected ? '100' : '80'
+                            } transition-opacity duration-300 ${
+                                !disabled && 'group-hover:opacity-100'
+                            }`}
                         />
-                    )}
 
-                    <div className="relative z-10">
-                        {/* Emoji */}
-                        <motion.div
-                            className="text-6xl md:text-7xl mb-4"
-                            animate={selected === choice.id ? {
-                                rotate: [0, -10, 10, -10, 0],
-                                scale: [1, 1.1, 1],
-                            } : {}}
-                            transition={{
-                                duration: 0.5,
-                                repeat: selected === choice.id ? Infinity : 0,
-                                repeatDelay: 1,
-                            }}
-                        >
-                            {choice.emoji}
-                        </motion.div>
-
-                        {/* Name */}
-                        <h3 className="text-xl md:text-2xl font-bold mb-2">
-                            {choice.name}
-                        </h3>
-
-                        {/* Description */}
-                        <p className="text-sm text-gray-400">
-                            {choice.description}
-                        </p>
-
-                        {/* Selected indicator */}
-                        {selected === choice.id && (
-                            <motion.div
-                                className="mt-4 flex items-center justify-center"
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                            >
-                                <div className={`px-4 py-1 rounded-full bg-gradient-to-r ${choice.color} text-white text-sm font-semibold`}>
-                                    Selected
-                                </div>
-                            </motion.div>
+                        {/* Glow Effect on Hover */}
+                        {!disabled && (
+                            <div
+                                className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl ${choice.hoverGlow}`}
+                            />
                         )}
-                    </div>
-                </motion.button>
-            ))}
+
+                        {/* Content */}
+                        <div className="relative z-10 flex flex-col items-center gap-3">
+                            {/* Emoji with Rotation Animation */}
+                            <motion.div
+                                className="text-6xl"
+                                animate={
+                                    isSelected
+                                        ? {
+                                            rotate: [0, -10, 10, -10, 0],
+                                            scale: [1, 1.1, 1, 1.1, 1],
+                                        }
+                                        : {}
+                                }
+                                transition={{
+                                    duration: 0.6,
+                                    repeat: isSelected ? Infinity : 0,
+                                    repeatDelay: 1,
+                                }}
+                                whileHover={!disabled ? { scale: 1.2, rotate: 360 } : {}}
+                            >
+                                {choice.emoji}
+                            </motion.div>
+
+                            {/* Name */}
+                            <div className="text-xl font-bold text-white drop-shadow-lg">
+                                {choice.name}
+                            </div>
+
+                            {/* Description */}
+                            <div className="text-sm text-white/80 font-medium">
+                                {choice.description}
+                            </div>
+
+                            {/* Selected Indicator */}
+                            {isSelected && (
+                                <motion.div
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    className="absolute -top-2 -right-2 bg-green-500 rounded-full p-2 shadow-lg"
+                                >
+                                    <Sparkles className="w-4 h-4 text-white" />
+                                </motion.div>
+                            )}
+                        </div>
+
+                        {/* Shine Effect */}
+                        {!disabled && (
+                            <motion.div
+                                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                                initial={{ x: '-100%' }}
+                                whileHover={{ x: '100%' }}
+                                transition={{ duration: 0.6 }}
+                            />
+                        )}
+                    </motion.button>
+                )
+            })}
         </div>
     )
 }

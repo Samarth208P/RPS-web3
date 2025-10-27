@@ -2,69 +2,96 @@ import { useState, useEffect } from 'react'
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi'
 import { parseEther, parseEventLogs, formatEther } from 'viem'
 import { toast } from 'react-hot-toast'
+import { AnimatePresence } from 'framer-motion'
 import { CONTRACT_ADDRESS, ROCK_PAPER_SCISSORS_ABI, CHOICES } from '../config/contracts'
 import ChoiceSelector from './ChoiceSelector'
 import BetInput from './BetInput'
-import { Loader2 } from 'lucide-react'
+import BattleAnimation from './BattleAnimation'
+import { Zap, Gamepad2 } from 'lucide-react'
+import { soundManager } from '../utils/soundManager'
 
 const GameBoard = ({ onGameComplete }) => {
     const { address } = useAccount()
     const [betAmount, setBetAmount] = useState('0.01')
     const [selectedChoice, setSelectedChoice] = useState(null)
     const [isPlaying, setIsPlaying] = useState(false)
+    const [lastGameConfig, setLastGameConfig] = useState(null)
+    const [currentGameId, setCurrentGameId] = useState(null)
+    const [showBattleAnimation, setShowBattleAnimation] = useState(false)
+    const [battleHouseChoice, setBattleHouseChoice] = useState(null)
 
-    // Get entropy fee
     const { data: entropyFee } = useReadContract({
         address: CONTRACT_ADDRESS,
         abi: ROCK_PAPER_SCISSORS_ABI,
         functionName: 'getEntropyFee',
     })
 
-    // Play game transaction
     const {
         writeContract: playGame,
         data: playHash,
         isPending: isPlayPending,
         error: playError,
-        reset: resetWriteContract
     } = useWriteContract()
 
-    // Wait for transaction receipt
     const {
         isLoading: isConfirming,
         isSuccess: isPlaySuccess,
         data: receipt,
-        error: txError
+        error: txError,
     } = useWaitForTransactionReceipt({
         hash: playHash,
     })
 
-    // Handle play game
+    useEffect(() => {
+        const handleKeyPress = (e) => {
+            if (isPlaying || showBattleAnimation) return
+
+            if (e.key === '1') {
+                setSelectedChoice(CHOICES.ROCK)
+                soundManager.play('select')
+            } else if (e.key === '2') {
+                setSelectedChoice(CHOICES.PAPER)
+                soundManager.play('select')
+            } else if (e.key === '3') {
+                setSelectedChoice(CHOICES.SCISSORS)
+                soundManager.play('select')
+            } else if ((e.key === ' ' || e.key === 'Enter') && selectedChoice && betAmount) {
+                e.preventDefault()
+                handlePlay()
+            }
+        }
+
+        window.addEventListener('keydown', handleKeyPress)
+        return () => window.removeEventListener('keydown', handleKeyPress)
+    }, [selectedChoice, betAmount, isPlaying, showBattleAnimation])
+
     const handlePlay = async () => {
         if (!selectedChoice || !betAmount) {
-            toast.error('Please select a choice and enter bet amount')
+            toast.error('Please select a choice and enter bet amount', {
+                icon: '⚠️',
+                style: {
+                    background: '#1f2937',
+                    color: '#fff',
+                    border: '1px solid #374151',
+                },
+            })
             return
         }
 
         try {
             setIsPlaying(true)
+            soundManager.play('click')
+            setLastGameConfig({ choice: selectedChoice, bet: betAmount })
 
-            // Generate random number for entropy
             const randomBytes = crypto.getRandomValues(new Uint8Array(32))
-            const randomHex = '0x' + Array.from(randomBytes)
-                .map(b => b.toString(16).padStart(2, '0'))
-                .join('')
+            const randomHex =
+                '0x' +
+                Array.from(randomBytes)
+                    .map((b) => b.toString(16).padStart(2, '0'))
+                    .join('')
 
-            // Calculate total value (bet + entropy fee)
             const totalValue = parseEther(betAmount) + BigInt(entropyFee || 0)
 
-            console.log('🎲 Starting game with:', {
-                choice: selectedChoice,
-                betAmount,
-                totalValue: formatEther(totalValue)
-            })
-
-            // Call playGame
             playGame({
                 address: CONTRACT_ADDRESS,
                 abi: ROCK_PAPER_SCISSORS_ABI,
@@ -72,167 +99,287 @@ const GameBoard = ({ onGameComplete }) => {
                 args: [selectedChoice, randomHex],
                 value: totalValue,
             })
-
-            toast.loading('Starting game...', { id: 'game' })
         } catch (error) {
             console.error('Error playing game:', error)
-            toast.error(error.shortMessage || error.message || 'Failed to start game')
+            toast.error(error.shortMessage || error.message || 'Failed to start game', {
+                icon: '❌',
+                style: {
+                    background: '#1f2937',
+                    color: '#fff',
+                    border: '1px solid #ef4444',
+                },
+            })
             setIsPlaying(false)
         }
     }
 
-    // Handle transaction success and parse logs
+    const handleQuickRepeat = () => {
+        if (lastGameConfig && !isPlaying) {
+            setSelectedChoice(lastGameConfig.choice)
+            setBetAmount(lastGameConfig.bet)
+            soundManager.play('select')
+        }
+    }
+
     useEffect(() => {
         if (isPlaySuccess && receipt) {
             console.log('✅ Transaction confirmed!', receipt)
 
-            // Dismiss the loading toast WITHOUT showing success message
-            toast.dismiss('game')
-
-            setIsPlaying(false)
+            // Show battle animation immediately
+            setShowBattleAnimation(true)
+            setBattleHouseChoice(null)
 
             try {
-                // Parse event logs from the receipt
                 const logs = parseEventLogs({
                     abi: ROCK_PAPER_SCISSORS_ABI,
                     logs: receipt.logs,
                 })
 
-                console.log('📋 Parsed logs:', logs)
+                const gameCreatedEvent = logs.find((log) => log.eventName === 'GameCreated')
+                const gameRevealedEvent = logs.find((log) => log.eventName === 'GameRevealed')
 
-                // Find the game result event
-                const gameEvent = logs.find(log =>
-                    log.eventName === 'GamePlayed' ||
-                    log.eventName === 'GameResult' ||
-                    log.eventName === 'GameCompleted'
-                )
+                if (gameCreatedEvent) {
+                    const gameId = gameCreatedEvent.args.gameId
+                    setCurrentGameId(gameId)
 
-                if (gameEvent && gameEvent.args) {
-                    const result = {
-                        hash: receipt.transactionHash,
-                        playerChoice: Number(gameEvent.args.playerChoice || selectedChoice),
-                        houseChoice: Number(gameEvent.args.houseChoice),
-                        result: Number(gameEvent.args.result),
-                        betAmount: gameEvent.args.betAmount || parseEther(betAmount),
-                        payout: gameEvent.args.payout || 0n,
-                        randomNumber: gameEvent.args.randomNumber || receipt.transactionHash,
-                    }
+                    if (gameRevealedEvent) {
+                        setBattleHouseChoice(Number(gameRevealedEvent.args.houseChoice))
 
-                    console.log('🎯 Game result:', result)
-
-                    // Pass result to parent immediately
-                    if (onGameComplete) {
-                        onGameComplete(result)
-                    }
-                } else {
-                    console.warn('⚠️ No game event found in logs, falling back')
-
-                    // Fallback result
-                    const fallbackResult = {
-                        hash: receipt.transactionHash,
-                        playerChoice: selectedChoice,
-                        houseChoice: 0,
-                        result: 0,
-                        betAmount: parseEther(betAmount),
-                        payout: 0n,
-                        randomNumber: receipt.transactionHash,
-                    }
-
-                    if (onGameComplete) {
-                        onGameComplete(fallbackResult)
+                        setTimeout(() => {
+                            handleGameResult(gameRevealedEvent, gameId)
+                        }, 3000)
+                    } else {
+                        pollGameResult(gameId)
                     }
                 }
             } catch (error) {
                 console.error('Error parsing logs:', error)
+                setShowBattleAnimation(false)
+                setIsPlaying(false)
+            }
+        }
+    }, [isPlaySuccess, receipt])
 
-                // Still trigger with fallback data
-                if (onGameComplete) {
-                    onGameComplete({
+    const handleGameResult = (gameRevealedEvent, gameId) => {
+        const result = {
+            hash: receipt.transactionHash,
+            gameId: Number(gameId),
+            playerChoice: Number(gameRevealedEvent.playerChoice),
+            houseChoice: Number(gameRevealedEvent.houseChoice),
+            result: Number(gameRevealedEvent.result),
+            betAmount: parseEther(betAmount),
+            payout: gameRevealedEvent.payout || 0n,
+            randomNumber: gameRevealedEvent.randomNumber,
+        }
+
+        setShowBattleAnimation(false)
+        setIsPlaying(false)
+
+        if (onGameComplete) {
+            onGameComplete(result)
+        }
+    }
+
+    const pollGameResult = async (gameId) => {
+        let attempts = 0
+        const maxAttempts = 30
+
+        const poll = async () => {
+            try {
+                const { readContract } = await import('wagmi/actions')
+                const { config } = await import('../config/wagmi')
+
+                const game = await readContract(config, {
+                    address: CONTRACT_ADDRESS,
+                    abi: ROCK_PAPER_SCISSORS_ABI,
+                    functionName: 'getGame',
+                    args: [gameId],
+                })
+
+                if (game.revealed && game.result !== 0) {
+                    setBattleHouseChoice(Number(game.houseChoice))
+
+                    const result = {
                         hash: receipt.transactionHash,
-                        playerChoice: selectedChoice,
-                        houseChoice: 0,
-                        result: 0,
-                        betAmount: parseEther(betAmount),
-                        payout: 0n,
-                        randomNumber: receipt.transactionHash,
+                        gameId: Number(gameId),
+                        playerChoice: Number(game.playerChoice),
+                        houseChoice: Number(game.houseChoice),
+                        result: Number(game.result),
+                        betAmount: game.betAmount,
+                        payout: game.payout,
+                        randomNumber: game.randomNumber,
+                    }
+
+                    setTimeout(() => {
+                        setShowBattleAnimation(false)
+                        setIsPlaying(false)
+
+                        if (onGameComplete) {
+                            onGameComplete(result)
+                        }
+                    }, 2000)
+                } else if (attempts < maxAttempts) {
+                    attempts++
+                    setTimeout(poll, 2000)
+                } else {
+                    setShowBattleAnimation(false)
+                    setIsPlaying(false)
+                    toast.error('Game result timeout. Check history later.', {
+                        duration: 4000,
+                        style: {
+                            background: '#1f2937',
+                            color: '#fff',
+                            border: '1px solid #ef4444',
+                        },
                     })
+                }
+            } catch (error) {
+                console.error('Poll error:', error)
+                if (attempts < maxAttempts) {
+                    attempts++
+                    setTimeout(poll, 2000)
+                } else {
+                    setShowBattleAnimation(false)
+                    setIsPlaying(false)
                 }
             }
         }
-    }, [isPlaySuccess, receipt, selectedChoice, betAmount, onGameComplete])
 
-    // Handle errors
+        poll()
+    }
+
     useEffect(() => {
         if (playError) {
             toast.error(playError.shortMessage || 'Transaction failed', {
-                id: 'game',
-                duration: 4000
+                duration: 4000,
+                icon: '❌',
+                style: {
+                    background: '#1f2937',
+                    color: '#fff',
+                    border: '1px solid #ef4444',
+                },
             })
             setIsPlaying(false)
+            setShowBattleAnimation(false)
         }
         if (txError) {
             toast.error('Transaction reverted', {
-                id: 'game',
-                duration: 4000
+                duration: 4000,
+                icon: '❌',
+                style: {
+                    background: '#1f2937',
+                    color: '#fff',
+                    border: '1px solid #ef4444',
+                },
             })
             setIsPlaying(false)
+            setShowBattleAnimation(false)
         }
     }, [playError, txError])
 
-    const isLoading = isPlayPending || isConfirming || isPlaying
+    const isLoading = isPlayPending || isConfirming
 
     return (
-        <div className="card">
-            <div className="text-center mb-8">
-                <h2 className="text-3xl md:text-4xl font-bold mb-2 text-glow">
-                    Choose Your Weapon
-                </h2>
-                <p className="text-gray-300">
-                    Select your choice and place your bet
-                </p>
-            </div>
+        <>
+            <div className="bg-gray-800/20 rounded-2xl p-6 border border-gray-700/50 space-y-6">
+                <div className="flex items-center justify-between">
+                    <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                        <Gamepad2 className="w-6 h-6 text-purple-400" />
+                        Rock • Paper • Scissors
+                    </h2>
+                    <div className="text-xs text-gray-400 bg-gray-900/50 px-3 py-1 rounded-full">
+                        ⌨️ Hotkeys: 1, 2, 3, Space
+                    </div>
+                </div>
 
-            <BetInput
-                value={betAmount}
-                onChange={setBetAmount}
-                disabled={isLoading}
-            />
+                <p className="text-gray-400 text-center">Select your choice and place your bet</p>
 
-            <ChoiceSelector
-                selected={selectedChoice}
-                onSelect={setSelectedChoice}
-                disabled={isLoading}
-            />
+                <ChoiceSelector
+                    selected={selectedChoice}
+                    onSelect={(choice) => {
+                        setSelectedChoice(choice)
+                        soundManager.play('select')
+                    }}
+                    disabled={isLoading || showBattleAnimation}
+                />
 
-            <div className="mt-8 text-center">
+                <BetInput
+                    value={betAmount}
+                    onChange={setBetAmount}
+                    disabled={isLoading || showBattleAnimation}
+                    onQuickRepeat={handleQuickRepeat}
+                />
+
+                {entropyFee && (
+                    <div className="bg-gray-900/50 rounded-lg p-3 space-y-1 text-sm">
+                        <div className="flex justify-between text-gray-400">
+                            <span>Bet:</span>
+                            <span className="text-white font-medium">{betAmount} ETH</span>
+                        </div>
+                        <div className="flex justify-between text-gray-400">
+                            <span>Entropy fee:</span>
+                            <span className="text-white font-medium">
+                {(Number(entropyFee) / 1e18).toFixed(6)} ETH
+              </span>
+                        </div>
+                        <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent" />
+                        <div className="flex justify-between font-semibold">
+                            <span className="text-purple-400">Total:</span>
+                            <span className="text-white">
+                {(parseFloat(betAmount) + Number(entropyFee) / 1e18).toFixed(6)} ETH
+              </span>
+                        </div>
+                    </div>
+                )}
+
                 <button
                     onClick={handlePlay}
-                    disabled={!selectedChoice || !betAmount || isLoading}
-                    className="btn-primary text-xl px-12 py-4 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={!selectedChoice || !betAmount || isLoading || showBattleAnimation}
+                    className="w-full px-6 py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:from-gray-600 disabled:to-gray-700 text-white rounded-xl font-bold text-lg transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-lg shadow-purple-500/50 disabled:shadow-none"
                 >
-                    {isLoading ? (
-                        <span className="flex items-center space-x-2">
-                            <Loader2 className="w-6 h-6 animate-spin" />
-                            <span>
-                                {isPlayPending ? 'Confirming...' : isConfirming ? 'Processing...' : 'Loading...'}
-                            </span>
-                        </span>
+                    {isLoading || showBattleAnimation ? (
+                        <>
+                            <Zap className="w-5 h-5 animate-pulse" />
+                            {isConfirming ? 'Confirming Transaction...' : showBattleAnimation ? 'Battle in Progress...' : 'Signing...'}
+                        </>
                     ) : (
-                        'Play Game'
+                        <>
+                            <Zap className="w-5 h-5" />
+                            Play Game
+                        </>
                     )}
                 </button>
 
-                {entropyFee && !isLoading && (
-                    <div className="mt-4 text-sm text-gray-400">
-                        <p>Bet: {betAmount} ETH</p>
-                        <p>Entropy fee: {(Number(entropyFee) / 1e18).toFixed(6)} ETH</p>
-                        <p className="font-semibold text-white mt-1">
-                            Total: {(parseFloat(betAmount) + Number(entropyFee) / 1e18).toFixed(6)} ETH
-                        </p>
+                <div className="grid grid-cols-2 gap-2 text-xs text-gray-500">
+                    <div className="flex items-center gap-2">
+                        <kbd className="px-2 py-1 bg-gray-900 border border-gray-700 rounded">1</kbd>
+                        <span>Rock</span>
                     </div>
-                )}
+                    <div className="flex items-center gap-2">
+                        <kbd className="px-2 py-1 bg-gray-900 border border-gray-700 rounded">2</kbd>
+                        <span>Paper</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <kbd className="px-2 py-1 bg-gray-900 border border-gray-700 rounded">3</kbd>
+                        <span>Scissors</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <kbd className="px-2 py-1 bg-gray-900 border border-gray-700 rounded">Space</kbd>
+                        <span>Play</span>
+                    </div>
+                </div>
             </div>
-        </div>
+
+            <AnimatePresence>
+                {showBattleAnimation && (
+                    <BattleAnimation
+                        playerChoice={selectedChoice}
+                        houseChoice={battleHouseChoice}
+                        onComplete={() => {}}
+                    />
+                )}
+            </AnimatePresence>
+        </>
     )
 }
 

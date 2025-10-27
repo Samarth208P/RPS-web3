@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { DollarSign, TrendingUp, Zap } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { DollarSign, TrendingUp, Zap, RotateCcw } from 'lucide-react'
 import { MIN_BET, MAX_BET } from '../config/contracts'
 
 const quickBets = [
@@ -9,12 +9,19 @@ const quickBets = [
     { label: '0.1', value: '0.1' },
 ]
 
-const BetInput = ({ value, onChange, disabled }) => {
+const BetInput = ({ value, onChange, disabled, onQuickRepeat }) => {
     const [error, setError] = useState('')
+    const [lastBet, setLastBet] = useState(null)
+
+    // Save last bet for quick repeat
+    useEffect(() => {
+        if (value && parseFloat(value) > 0) {
+            setLastBet(value)
+        }
+    }, [value])
 
     const handleChange = (newValue) => {
         const num = parseFloat(newValue)
-
         if (isNaN(num) || num < parseFloat(MIN_BET)) {
             setError(`Minimum bet is ${MIN_BET} ETH`)
         } else if (num > parseFloat(MAX_BET)) {
@@ -22,23 +29,31 @@ const BetInput = ({ value, onChange, disabled }) => {
         } else {
             setError('')
         }
-
         onChange(newValue)
     }
 
     const potentialWin = (parseFloat(value) * 1.95).toFixed(4)
 
     return (
-        <div className="mb-6">
-            <label className="block text-sm font-semibold mb-3 text-gray-300">
-                Bet Amount (ETH)
-            </label>
+        <div className="space-y-4">
+            <div className="flex items-center justify-between">
+                <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                    <DollarSign className="w-4 h-4 text-green-400" />
+                    Bet Amount
+                </label>
+                {lastBet && onQuickRepeat && (
+                    <button
+                        onClick={() => onQuickRepeat()}
+                        disabled={disabled}
+                        className="flex items-center gap-2 px-3 py-1 bg-purple-600/20 hover:bg-purple-600/40 text-purple-400 rounded-lg text-xs font-medium transition-all duration-200 disabled:opacity-50"
+                    >
+                        <RotateCcw className="w-3 h-3" />
+                        Repeat Last
+                    </button>
+                )}
+            </div>
 
-            {/* Input Field */}
             <div className="relative">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                    <DollarSign className="w-5 h-5" />
-                </div>
                 <input
                     type="number"
                     step="0.001"
@@ -47,60 +62,44 @@ const BetInput = ({ value, onChange, disabled }) => {
                     value={value}
                     onChange={(e) => handleChange(e.target.value)}
                     disabled={disabled}
-                    className="input-field w-full pl-12 pr-4 text-lg font-semibold disabled:opacity-50"
-                    placeholder="0.01"
+                    className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition-colors disabled:opacity-50"
+                    placeholder="Enter bet amount"
                 />
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">
+          ETH
+        </span>
             </div>
 
-            {/* Error Message */}
-            {error && (
-                <p className="text-red-400 text-sm mt-2">{error}</p>
-            )}
+            {error && <p className="text-red-400 text-sm flex items-center gap-2">⚠️ {error}</p>}
 
             {/* Quick Bet Buttons */}
-            <div className="grid grid-cols-4 gap-2 mt-3">
+            <div className="grid grid-cols-4 gap-2">
                 {quickBets.map((bet) => (
                     <button
                         key={bet.value}
                         onClick={() => handleChange(bet.value)}
                         disabled={disabled}
-                        className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${
-                            value === bet.value
-                                ? 'bg-blue-500 text-white'
-                                : 'bg-white/5 hover:bg-white/10 text-gray-300'
-                        } disabled:opacity-50`}
+                        className="px-4 py-2 bg-gradient-to-r from-purple-600/20 to-pink-600/20 hover:from-purple-600/40 hover:to-pink-600/40 border border-purple-500/30 rounded-lg text-white font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
                     >
-                        {bet.label} ETH
+                        {bet.label}
                     </button>
                 ))}
             </div>
 
             {/* Potential Win Display */}
-            {value && !error && (
-                <div className="mt-4 p-4 rounded-xl bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                            <TrendingUp className="w-5 h-5 text-green-400" />
-                            <span className="text-sm text-gray-300">Potential Win</span>
-                        </div>
-                        <div className="text-right">
-                            <p className="text-2xl font-bold text-green-400">
-                                {potentialWin} ETH
-                            </p>
-                            <p className="text-xs text-gray-400">
-                                (95% payout ratio)
-                            </p>
-                        </div>
-                    </div>
+            <div className="bg-gradient-to-r from-green-900/20 to-emerald-900/20 border border-green-500/30 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-1">
+          <span className="text-sm text-gray-400 flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-green-400" />
+            Potential Win
+          </span>
+                    <span className="text-2xl font-bold text-green-400">{potentialWin} ETH</span>
                 </div>
-            )}
+                <div className="text-xs text-gray-500 text-right">(95% payout ratio)</div>
+            </div>
 
-            {/* Info */}
-            <div className="mt-3 flex items-start space-x-2 text-xs text-gray-400">
-                <Zap className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                <p>
-                    House edge: 5% • Min bet: {MIN_BET} ETH • Max bet: {MAX_BET} ETH
-                </p>
+            <div className="text-xs text-gray-500 text-center">
+                House edge: 5% • Min bet: {MIN_BET} ETH • Max bet: {MAX_BET} ETH
             </div>
         </div>
     )
