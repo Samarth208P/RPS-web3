@@ -10,7 +10,7 @@ import BattleAnimation from './BattleAnimation'
 import { Zap, Gamepad2 } from 'lucide-react'
 import { soundManager } from '../utils/soundManager'
 
-const GameBoard = ({ onGameComplete }) => {
+const GameBoard = ({ onGameComplete, onBattleStart, onBattleEnd }) => {
     const { address } = useAccount()
     const [betAmount, setBetAmount] = useState('0.01')
     const [selectedChoice, setSelectedChoice] = useState(null)
@@ -41,29 +41,6 @@ const GameBoard = ({ onGameComplete }) => {
     } = useWaitForTransactionReceipt({
         hash: playHash,
     })
-
-    useEffect(() => {
-        const handleKeyPress = (e) => {
-            if (isPlaying || showBattleAnimation) return
-
-            if (e.key === '1') {
-                setSelectedChoice(CHOICES.ROCK)
-                soundManager.play('select')
-            } else if (e.key === '2') {
-                setSelectedChoice(CHOICES.PAPER)
-                soundManager.play('select')
-            } else if (e.key === '3') {
-                setSelectedChoice(CHOICES.SCISSORS)
-                soundManager.play('select')
-            } else if ((e.key === ' ' || e.key === 'Enter') && selectedChoice && betAmount) {
-                e.preventDefault()
-                handlePlay()
-            }
-        }
-
-        window.addEventListener('keydown', handleKeyPress)
-        return () => window.removeEventListener('keydown', handleKeyPress)
-    }, [selectedChoice, betAmount, isPlaying, showBattleAnimation])
 
     const handlePlay = async () => {
         if (!selectedChoice || !betAmount) {
@@ -110,6 +87,7 @@ const GameBoard = ({ onGameComplete }) => {
                 },
             })
             setIsPlaying(false)
+            if (onBattleEnd) onBattleEnd()
         }
     }
 
@@ -125,9 +103,10 @@ const GameBoard = ({ onGameComplete }) => {
         if (isPlaySuccess && receipt) {
             console.log('✅ Transaction confirmed!', receipt)
 
-            // Show battle animation immediately
             setShowBattleAnimation(true)
             setBattleHouseChoice(null)
+
+            if (onBattleStart) onBattleStart()
 
             try {
                 const logs = parseEventLogs({
@@ -156,6 +135,7 @@ const GameBoard = ({ onGameComplete }) => {
                 console.error('Error parsing logs:', error)
                 setShowBattleAnimation(false)
                 setIsPlaying(false)
+                if (onBattleEnd) onBattleEnd()
             }
         }
     }, [isPlaySuccess, receipt])
@@ -174,6 +154,8 @@ const GameBoard = ({ onGameComplete }) => {
 
         setShowBattleAnimation(false)
         setIsPlaying(false)
+
+        if (onBattleEnd) onBattleEnd()
 
         if (onGameComplete) {
             onGameComplete(result)
@@ -214,6 +196,8 @@ const GameBoard = ({ onGameComplete }) => {
                         setShowBattleAnimation(false)
                         setIsPlaying(false)
 
+                        if (onBattleEnd) onBattleEnd()
+
                         if (onGameComplete) {
                             onGameComplete(result)
                         }
@@ -224,6 +208,9 @@ const GameBoard = ({ onGameComplete }) => {
                 } else {
                     setShowBattleAnimation(false)
                     setIsPlaying(false)
+
+                    if (onBattleEnd) onBattleEnd()
+
                     toast.error('Game result timeout. Check history later.', {
                         duration: 4000,
                         style: {
@@ -241,6 +228,7 @@ const GameBoard = ({ onGameComplete }) => {
                 } else {
                     setShowBattleAnimation(false)
                     setIsPlaying(false)
+                    if (onBattleEnd) onBattleEnd()
                 }
             }
         }
@@ -261,6 +249,7 @@ const GameBoard = ({ onGameComplete }) => {
             })
             setIsPlaying(false)
             setShowBattleAnimation(false)
+            if (onBattleEnd) onBattleEnd()
         }
         if (txError) {
             toast.error('Transaction reverted', {
@@ -274,6 +263,7 @@ const GameBoard = ({ onGameComplete }) => {
             })
             setIsPlaying(false)
             setShowBattleAnimation(false)
+            if (onBattleEnd) onBattleEnd()
         }
     }, [playError, txError])
 
@@ -287,9 +277,6 @@ const GameBoard = ({ onGameComplete }) => {
                         <Gamepad2 className="w-6 h-6 text-purple-400" />
                         Rock • Paper • Scissors
                     </h2>
-                    <div className="text-xs text-gray-400 bg-gray-900/50 px-3 py-1 rounded-full">
-                        ⌨️ Hotkeys: 1, 2, 3, Space
-                    </div>
                 </div>
 
                 <p className="text-gray-400 text-center">Select your choice and place your bet</p>
@@ -319,15 +306,15 @@ const GameBoard = ({ onGameComplete }) => {
                         <div className="flex justify-between text-gray-400">
                             <span>Entropy fee:</span>
                             <span className="text-white font-medium">
-                {(Number(entropyFee) / 1e18).toFixed(6)} ETH
-              </span>
+                                {(Number(entropyFee) / 1e18).toFixed(6)} ETH
+                            </span>
                         </div>
                         <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent" />
                         <div className="flex justify-between font-semibold">
                             <span className="text-purple-400">Total:</span>
                             <span className="text-white">
-                {(parseFloat(betAmount) + Number(entropyFee) / 1e18).toFixed(6)} ETH
-              </span>
+                                {(parseFloat(betAmount) + Number(entropyFee) / 1e18).toFixed(6)} ETH
+                            </span>
                         </div>
                     </div>
                 )}
@@ -349,25 +336,6 @@ const GameBoard = ({ onGameComplete }) => {
                         </>
                     )}
                 </button>
-
-                <div className="grid grid-cols-2 gap-2 text-xs text-gray-500">
-                    <div className="flex items-center gap-2">
-                        <kbd className="px-2 py-1 bg-gray-900 border border-gray-700 rounded">1</kbd>
-                        <span>Rock</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <kbd className="px-2 py-1 bg-gray-900 border border-gray-700 rounded">2</kbd>
-                        <span>Paper</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <kbd className="px-2 py-1 bg-gray-900 border border-gray-700 rounded">3</kbd>
-                        <span>Scissors</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <kbd className="px-2 py-1 bg-gray-900 border border-gray-700 rounded">Space</kbd>
-                        <span>Play</span>
-                    </div>
-                </div>
             </div>
 
             <AnimatePresence>

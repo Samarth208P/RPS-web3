@@ -40,11 +40,12 @@ const ChoiceSelector = ({ selected, onSelect, disabled }) => {
                         key={choice.id}
                         onClick={() => !disabled && onSelect(choice.id)}
                         disabled={disabled}
-                        className={`relative group overflow-hidden rounded-2xl p-6 transition-all duration-300 ${
+                        className={`relative group overflow-hidden rounded-2xl p-6 transition-all duration-200 ${
                             disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
                         }`}
                         whileHover={!disabled ? { scale: 1.05, y: -5 } : {}}
                         whileTap={!disabled ? { scale: 0.98 } : {}}
+                        transition={{ duration: 0.15 }}
                         animate={
                             isSelected
                                 ? {
@@ -56,15 +57,12 @@ const ChoiceSelector = ({ selected, onSelect, disabled }) => {
                                 }
                                 : {}
                         }
-                        transition={{
-                            boxShadow: { duration: 2, repeat: Infinity },
-                        }}
                     >
                         {/* Animated Background */}
                         <div
                             className={`absolute inset-0 bg-gradient-to-br ${choice.color} opacity-${
                                 isSelected ? '100' : '80'
-                            } transition-opacity duration-300 ${
+                            } transition-opacity duration-150 ${
                                 !disabled && 'group-hover:opacity-100'
                             }`}
                         />
@@ -72,20 +70,19 @@ const ChoiceSelector = ({ selected, onSelect, disabled }) => {
                         {/* Glow Effect on Hover */}
                         {!disabled && (
                             <div
-                                className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl ${choice.hoverGlow}`}
+                                className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150 blur-xl ${choice.hoverGlow}`}
                             />
                         )}
 
                         {/* Content */}
                         <div className="relative z-10 flex flex-col items-center gap-3">
-                            {/* Emoji with Rotation Animation */}
+                            {/* Emoji with Tilt Animation ONLY when selected */}
                             <motion.div
                                 className="text-6xl"
                                 animate={
                                     isSelected
                                         ? {
-                                            rotate: [0, -10, 10, -10, 0],
-                                            scale: [1, 1.1, 1, 1.1, 1],
+                                            rotate: [-10, 10, -10, 0],
                                         }
                                         : {}
                                 }
@@ -94,7 +91,7 @@ const ChoiceSelector = ({ selected, onSelect, disabled }) => {
                                     repeat: isSelected ? Infinity : 0,
                                     repeatDelay: 1,
                                 }}
-                                whileHover={!disabled ? { scale: 1.2, rotate: 360 } : {}}
+                                whileHover={!disabled ? { scale: 1.2 } : {}}
                             >
                                 {choice.emoji}
                             </motion.div>
@@ -127,7 +124,7 @@ const ChoiceSelector = ({ selected, onSelect, disabled }) => {
                                 className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
                                 initial={{ x: '-100%' }}
                                 whileHover={{ x: '100%' }}
-                                transition={{ duration: 0.6 }}
+                                transition={{ duration: 0.4 }}
                             />
                         )}
                     </motion.button>

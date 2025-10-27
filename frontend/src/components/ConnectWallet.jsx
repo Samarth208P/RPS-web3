@@ -1,4 +1,4 @@
-import { X, Wallet, Zap, Shield, TrendingUp, Sparkles } from 'lucide-react'
+import { X, Wallet, Zap, Shield, TrendingUp, Sparkles, Flame } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useConnect, useAccount } from 'wagmi'
 import { useEffect } from 'react'
@@ -29,31 +29,38 @@ const ConnectWallet = ({ onClose }) => {
         visible: {
             opacity: 1,
             transition: {
-                duration: 0.3,
-                staggerChildren: 0.1,
+                duration: 0.2,
             },
         },
-        exit: { opacity: 0 },
+        exit: {
+            opacity: 0,
+            transition: {
+                duration: 0.2,
+            }
+        },
     }
 
     const modalVariants = {
-        hidden: { scale: 0.8, y: 50, opacity: 0 },
+        hidden: { scale: 0.9, y: 20, opacity: 0 },
         visible: {
             scale: 1,
             y: 0,
             opacity: 1,
             transition: {
                 type: 'spring',
-                damping: 25,
+                damping: 20,
                 stiffness: 300,
+                delay: 0.1,
             }
         },
-        exit: { scale: 0.8, y: 50, opacity: 0 },
-    }
-
-    const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: { opacity: 1, y: 0 },
+        exit: {
+            scale: 0.9,
+            y: 20,
+            opacity: 0,
+            transition: {
+                duration: 0.2,
+            }
+        },
     }
 
     return (
@@ -63,142 +70,244 @@ const ConnectWallet = ({ onClose }) => {
                 initial="hidden"
                 animate="visible"
                 exit="exit"
-                className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80"
+                className="fixed inset-0 z-[9999] flex items-center justify-center p-4 backdrop-blur-sm"
                 onClick={onClose}
+                style={{
+                    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                }}
             >
+                {/* Extra dark overlay for more emphasis */}
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 bg-black/60"
+                />
+
                 <motion.div
                     variants={modalVariants}
-                    className="relative w-full max-w-lg bg-gradient-to-br from-gray-900 via-purple-900/50 to-gray-900 rounded-2xl border border-purple-500/30 shadow-2xl overflow-hidden"
+                    className="relative w-full max-w-md"
                     onClick={(e) => e.stopPropagation()}
                 >
-                    {/* Animated Background */}
-                    <div className="absolute inset-0 overflow-hidden">
-                        <motion.div
-                            className="absolute top-0 left-1/4 w-64 h-64 bg-purple-600/20 rounded-full blur-3xl"
-                            animate={{
-                                scale: [1, 1.2, 1],
-                                x: [0, 30, 0],
-                            }}
-                            transition={{
-                                duration: 5,
-                                repeat: Infinity,
-                            }}
-                        />
-                        <motion.div
-                            className="absolute bottom-0 right-1/4 w-64 h-64 bg-pink-600/20 rounded-full blur-3xl"
-                            animate={{
-                                scale: [1.2, 1, 1.2],
-                                x: [0, -30, 0],
-                            }}
-                            transition={{
-                                duration: 5,
-                                repeat: Infinity,
-                                delay: 2.5,
-                            }}
-                        />
-                    </div>
+                    {/* Glow effect behind modal */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-purple-600/30 to-pink-600/30 blur-3xl rounded-3xl" />
 
-                    {/* Close Button */}
-                    <button
-                        onClick={onClose}
-                        className="absolute top-4 right-4 z-10 p-2 hover:bg-white/10 rounded-lg transition-colors"
-                    >
-                        <X className="w-5 h-5 text-gray-400 hover:text-white" />
-                    </button>
-
-                    {/* Content */}
-                    <div className="relative z-10 p-8">
-                        {/* Header */}
-                        <motion.div variants={itemVariants} className="text-center mb-8">
+                    {/* Main modal */}
+                    <div className="relative bg-gradient-to-br from-gray-900 via-purple-950/60 to-gray-900 rounded-2xl border-2 border-purple-500/30 shadow-2xl overflow-hidden">
+                        {/* Animated Background Effects */}
+                        <div className="absolute inset-0 overflow-hidden pointer-events-none">
                             <motion.div
-                                className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/50"
+                                className="absolute top-0 left-1/4 w-64 h-64 bg-purple-600/20 rounded-full blur-3xl"
                                 animate={{
-                                    rotate: [0, 5, -5, 0],
+                                    scale: [1, 1.3, 1],
+                                    x: [0, 40, 0],
+                                    opacity: [0.3, 0.5, 0.3],
                                 }}
                                 transition={{
-                                    duration: 3,
+                                    duration: 5,
                                     repeat: Infinity,
+                                    ease: 'easeInOut',
                                 }}
-                            >
-                                <Wallet className="w-8 h-8 text-white" />
-                            </motion.div>
-                            <h2 className="text-3xl font-black text-white mb-2">Connect Wallet</h2>
-                            <p className="text-gray-400">
-                                Connect your wallet to start playing provably fair Rock Paper Scissors
-                            </p>
-                        </motion.div>
-
-                        {/* Wallet Options */}
-                        <motion.div variants={itemVariants} className="space-y-3 mb-6">
-                            {connectors.map((connector) => (
-                                <motion.button
-                                    key={connector.uid}
-                                    onClick={() => handleConnect(connector)}
-                                    disabled={isPending}
-                                    className="w-full p-4 bg-gray-800/20 hover:bg-gray-700/50 border border-purple-500/30 hover:border-purple-400/50 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group"
-                                    whileHover={{ scale: isPending ? 1 : 1.02 }}
-                                    whileTap={{ scale: isPending ? 1 : 0.98 }}
-                                >
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
-                                                <Wallet className="w-5 h-5 text-white" />
-                                            </div>
-                                            <div className="text-left">
-                                                <div className="font-bold text-white group-hover:text-purple-300 transition-colors">
-                                                    {connector.name}
-                                                </div>
-                                                <div className="text-xs text-gray-500">
-                                                    {isPending ? 'Connecting...' : 'Click to connect'}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <Sparkles className="w-5 h-5 text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                    </div>
-                                </motion.button>
-                            ))}
-                        </motion.div>
-
-                        {/* Error Message */}
-                        {error && (
+                            />
                             <motion.div
-                                initial={{ opacity: 0, y: -10 }}
+                                className="absolute bottom-0 right-1/4 w-64 h-64 bg-pink-600/20 rounded-full blur-3xl"
+                                animate={{
+                                    scale: [1.3, 1, 1.3],
+                                    x: [0, -40, 0],
+                                    opacity: [0.5, 0.3, 0.5],
+                                }}
+                                transition={{
+                                    duration: 5,
+                                    repeat: Infinity,
+                                    ease: 'easeInOut',
+                                    delay: 2.5,
+                                }}
+                            />
+
+                            {/* Floating particles */}
+                            {[...Array(10)].map((_, i) => (
+                                <motion.div
+                                    key={i}
+                                    className="absolute w-1 h-1 bg-purple-400/50 rounded-full"
+                                    initial={{
+                                        x: Math.random() * 100 + '%',
+                                        y: '100%',
+                                    }}
+                                    animate={{
+                                        y: '-20%',
+                                        opacity: [0, 1, 0],
+                                    }}
+                                    transition={{
+                                        duration: Math.random() * 3 + 2,
+                                        repeat: Infinity,
+                                        delay: Math.random() * 2,
+                                    }}
+                                />
+                            ))}
+                        </div>
+
+                        {/* Close Button */}
+                        <button
+                            onClick={onClose}
+                            className="absolute top-4 right-4 z-10 p-2 hover:bg-white/10 rounded-lg transition-all duration-200 group"
+                        >
+                            <X className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
+                        </button>
+
+                        {/* Content */}
+                        <div className="relative z-10 p-8">
+                            {/* Header */}
+                            <div className="text-center mb-8">
+                                <motion.div
+                                    className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/50 relative"
+                                    animate={{
+                                        boxShadow: [
+                                            '0 10px 30px rgba(168, 85, 247, 0.3)',
+                                            '0 10px 40px rgba(168, 85, 247, 0.5)',
+                                            '0 10px 30px rgba(168, 85, 247, 0.3)',
+                                        ],
+                                    }}
+                                    transition={{
+                                        duration: 2,
+                                        repeat: Infinity,
+                                    }}
+                                >
+                                    <Wallet className="w-10 h-10 text-white" />
+
+                                    {/* Pulsing ring */}
+                                    <motion.div
+                                        className="absolute inset-0 rounded-2xl border-2 border-purple-400"
+                                        animate={{
+                                            scale: [1, 1.2, 1],
+                                            opacity: [0.5, 0, 0.5],
+                                        }}
+                                        transition={{
+                                            duration: 2,
+                                            repeat: Infinity,
+                                        }}
+                                    />
+                                </motion.div>
+
+                                <motion.h2
+                                    className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 mb-2"
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.2 }}
+                                >
+                                    Connect Wallet
+                                </motion.h2>
+
+                                <motion.p
+                                    className="text-gray-400 text-sm"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ delay: 0.3 }}
+                                >
+                                    Start playing provably fair Rock Paper Scissors
+                                </motion.p>
+                            </div>
+
+                            {/* Wallet Options */}
+                            <motion.div
+                                className="space-y-3 mb-6"
+                                initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="mb-6 p-3 bg-red-900/30 border border-red-500/30 rounded-lg"
+                                transition={{ delay: 0.4 }}
                             >
-                                <p className="text-red-400 text-sm">{error.message}</p>
+                                {connectors.map((connector, index) => (
+                                    <motion.button
+                                        key={connector.uid}
+                                        onClick={() => handleConnect(connector)}
+                                        disabled={isPending}
+                                        className="w-full p-4 bg-gray-800/50 hover:bg-gray-700/60 border-2 border-purple-500/30 hover:border-purple-400/60 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group relative overflow-hidden"
+                                        whileHover={{ scale: isPending ? 1 : 1.02, y: -2 }}
+                                        whileTap={{ scale: isPending ? 1 : 0.98 }}
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: 0.5 + index * 0.1 }}
+                                    >
+                                        {/* Hover gradient effect */}
+                                        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/0 via-purple-600/10 to-pink-600/0 opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                                        <div className="relative flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center shadow-lg">
+                                                    <Wallet className="w-6 h-6 text-white" />
+                                                </div>
+                                                <div className="text-left">
+                                                    <div className="font-bold text-white group-hover:text-purple-300 transition-colors">
+                                                        {connector.name}
+                                                    </div>
+                                                    <div className="text-xs text-gray-500">
+                                                        {isPending ? 'Connecting...' : 'Click to connect'}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <motion.div
+                                                animate={{ rotate: [0, 10, -10, 0] }}
+                                                transition={{ duration: 2, repeat: Infinity }}
+                                            >
+                                                <Sparkles className="w-5 h-5 text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            </motion.div>
+                                        </div>
+                                    </motion.button>
+                                ))}
                             </motion.div>
-                        )}
 
-                        {/* Features */}
-                        <motion.div variants={itemVariants} className="space-y-3 text-sm">
-                            <div className="flex items-start gap-3 text-gray-400">
-                                <Zap className="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5" />
-                                <div>
-                                    <div className="font-semibold text-white">Lightning-fast gameplay</div>
-                                    <div>Powered by Base Sepolia</div>
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-3 text-gray-400">
-                                <Shield className="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5" />
-                                <div>
-                                    <div className="font-semibold text-white">Verifiable randomness</div>
-                                    <div>Via Pyth Entropy oracle</div>
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-3 text-gray-400">
-                                <TrendingUp className="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5" />
-                                <div>
-                                    <div className="font-semibold text-white">95% payout ratio</div>
-                                    <div>Low house edge</div>
-                                </div>
-                            </div>
-                        </motion.div>
+                            {/* Error Message */}
+                            <AnimatePresence>
+                                {error && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: -10, height: 0 }}
+                                        animate={{ opacity: 1, y: 0, height: 'auto' }}
+                                        exit={{ opacity: 0, y: -10, height: 0 }}
+                                        className="mb-6 p-4 bg-red-900/30 border-2 border-red-500/30 rounded-lg"
+                                    >
+                                        <p className="text-red-400 text-sm font-medium">{error.message}</p>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
 
-                        {/* Terms */}
-                        <motion.p variants={itemVariants} className="text-xs text-gray-500 text-center mt-6">
-                            By connecting, you agree to our Terms of Service
-                        </motion.p>
+                            {/* Features */}
+                            <motion.div
+                                className="space-y-3 text-sm bg-black/20 rounded-xl p-4 border border-purple-500/20"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.6 }}
+                            >
+                                <div className="flex items-start gap-3 text-gray-400">
+                                    <Zap className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                                    <div>
+                                        <div className="font-semibold text-white">Lightning-fast gameplay</div>
+                                        <div className="text-xs">Powered by Base Sepolia testnet</div>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-3 text-gray-400">
+                                    <Shield className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                                    <div>
+                                        <div className="font-semibold text-white">Verifiable randomness</div>
+                                        <div className="text-xs">Via Pyth Entropy oracle</div>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-3 text-gray-400">
+                                    <Flame className="w-5 h-5 text-orange-400 flex-shrink-0 mt-0.5" />
+                                    <div>
+                                        <div className="font-semibold text-white">95% payout ratio</div>
+                                        <div className="text-xs">Only 5% house edge</div>
+                                    </div>
+                                </div>
+                            </motion.div>
+
+                            {/* Terms */}
+                            <motion.p
+                                className="text-xs text-gray-600 text-center mt-6"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 0.8 }}
+                            >
+                                By connecting, you agree to our Terms of Service
+                            </motion.p>
+                        </div>
                     </div>
                 </motion.div>
             </motion.div>

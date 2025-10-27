@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { soundManager } from '../utils/soundManager'
 import { Zap, Flame, Sparkles, Target } from 'lucide-react'
 
@@ -15,15 +15,31 @@ const choiceNames = {
     3: 'SCISSORS',
 }
 
+// Determine result: 1=WIN, 2=LOSE, 3=DRAW
+const determineResult = (playerChoice, houseChoice) => {
+    if (playerChoice === houseChoice) return 3 // DRAW
+    if (
+        (playerChoice === 1 && houseChoice === 3) ||
+        (playerChoice === 2 && houseChoice === 1) ||
+        (playerChoice === 3 && houseChoice === 2)
+    ) {
+        return 1 // WIN
+    }
+    return 2 // LOSE
+}
+
 const BattleAnimation = ({ playerChoice, houseChoice, onComplete }) => {
     const [shakeCount, setShakeCount] = useState(0)
     const [showResult, setShowResult] = useState(false)
     const [totalShakes, setTotalShakes] = useState(0)
+    const shakeIntervalRef = useRef(null)
+    const hasPlayedResultSound = useRef(false)
 
+    // Start shake animation and sound
     useEffect(() => {
         soundManager.play('shake')
 
-        const shakeInterval = setInterval(() => {
+        shakeIntervalRef.current = setInterval(() => {
             setShakeCount((prev) => {
                 const newCount = (prev + 1) % 3
                 setTotalShakes((t) => t + 1)
@@ -36,22 +52,66 @@ const BattleAnimation = ({ playerChoice, houseChoice, onComplete }) => {
             })
         }, 500)
 
-        return () => clearInterval(shakeInterval)
+        return () => {
+            if (shakeIntervalRef.current) {
+                clearInterval(shakeIntervalRef.current)
+            }
+        }
     }, [])
 
+    // Handle reveal
     useEffect(() => {
         if (houseChoice && !showResult) {
             const timeout = setTimeout(() => {
+                // Stop shake sound
+                soundManager.stop('shake')
+
+                // Clear shake interval
+                if (shakeIntervalRef.current) {
+                    clearInterval(shakeIntervalRef.current)
+                    shakeIntervalRef.current = null
+                }
+
+                // Play reveal sound
                 soundManager.play('reveal')
                 setShowResult(true)
+
+                // Play result sound after reveal
                 setTimeout(() => {
-                    if (onComplete) onComplete()
-                }, 1500)
+                    if (!hasPlayedResultSound.current && houseChoice) {
+                        const result = determineResult(playerChoice, houseChoice)
+
+                        if (result === 1) {
+                            soundManager.play('win')
+                        } else if (result === 2) {
+                            soundManager.play('lose')
+                        } else {
+                            soundManager.play('draw')
+                        }
+
+                        hasPlayedResultSound.current = true
+                    }
+
+                    // Complete animation
+                    setTimeout(() => {
+                        if (onComplete) onComplete()
+                    }, 1000)
+                }, 1000)
             }, 500)
 
             return () => clearTimeout(timeout)
         }
-    }, [houseChoice, showResult, onComplete])
+    }, [houseChoice, showResult, onComplete, playerChoice])
+
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            soundManager.stop('shake')
+            if (shakeIntervalRef.current) {
+                clearInterval(shakeIntervalRef.current)
+            }
+        }
+    }, [])
 
     return (
         <motion.div
@@ -59,10 +119,13 @@ const BattleAnimation = ({ playerChoice, houseChoice, onComplete }) => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden"
-            style={{ isolation: 'isolate' }}
+            style={{ isolation: 'isolate', margin: 0, padding: 0, top: 0, left: 0, right: 0, bottom: 0 }}
         >
-            {/* Solid Background - covers everything */}
-            <div className="absolute inset-0 bg-gradient-to-br from-black via-purple-950/90 to-black" />
+            {/* Solid Background - covers everything including top gap */}
+            <div
+                className="absolute inset-0 bg-gradient-to-br from-black via-purple-950/90 to-black"
+                style={{ margin: 0, padding: 0, top: 0, left: 0, right: 0, bottom: 0 }}
+            />
 
             {/* Animated Grid */}
             <div className="absolute inset-0 opacity-20">
@@ -224,9 +287,9 @@ const BattleAnimation = ({ playerChoice, houseChoice, onComplete }) => {
                             transition={{ duration: 1, repeat: showResult ? 0 : Infinity }}
                         >
                             <div className="relative px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-purple-600 via-purple-500 to-purple-600 rounded-full border-2 border-purple-300 shadow-lg shadow-purple-500/50">
-                <span className="text-lg sm:text-xl md:text-2xl font-black text-white tracking-wider">
-                  YOU
-                </span>
+                                <span className="text-lg sm:text-xl md:text-2xl font-black text-white tracking-wider">
+                                    YOU
+                                </span>
 
                                 <motion.div
                                     className="absolute inset-0 rounded-full border-2 border-purple-400"
@@ -352,9 +415,9 @@ const BattleAnimation = ({ playerChoice, houseChoice, onComplete }) => {
                             )}
 
                             <div className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black relative">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-yellow-400 to-purple-500 drop-shadow-2xl">
-                  VS
-                </span>
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-yellow-400 to-purple-500 drop-shadow-2xl">
+                                    VS
+                                </span>
 
                                 <motion.div
                                     className="absolute inset-0 blur-xl bg-gradient-to-r from-red-500 via-yellow-400 to-purple-500 opacity-60"
@@ -427,9 +490,9 @@ const BattleAnimation = ({ playerChoice, houseChoice, onComplete }) => {
                             transition={{ duration: 1, repeat: showResult ? 0 : Infinity, delay: 0.5 }}
                         >
                             <div className="relative px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-pink-600 via-pink-500 to-pink-600 rounded-full border-2 border-pink-300 shadow-lg shadow-pink-500/50">
-                <span className="text-lg sm:text-xl md:text-2xl font-black text-white tracking-wider">
-                  HOUSE
-                </span>
+                                <span className="text-lg sm:text-xl md:text-2xl font-black text-white tracking-wider">
+                                    HOUSE
+                                </span>
 
                                 <motion.div
                                     className="absolute inset-0 rounded-full border-2 border-pink-400"

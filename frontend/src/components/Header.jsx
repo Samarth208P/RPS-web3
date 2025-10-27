@@ -1,8 +1,10 @@
-import { Wallet, TrendingUp, ExternalLink, Shield } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { Wallet, TrendingUp, ExternalLink, Shield, Volume2, VolumeX } from 'lucide-react'
 import { useAccount, useDisconnect, useBalance } from 'wagmi'
 import { formatEther } from 'viem'
 import { NETWORK_CONFIG } from '../config/wagmi'
 import { CONTRACT_ADDRESS } from '../config/contracts'
+import { soundManager } from '../utils/soundManager'
 
 const Header = ({ onConnect }) => {
     const { address, isConnected } = useAccount()
@@ -10,10 +12,16 @@ const Header = ({ onConnect }) => {
     const { data: balance } = useBalance({
         address: address,
     })
+    const [isMusicPlaying, setIsMusicPlaying] = useState(false)  // Changed to false - starts muted
 
     const formatAddress = (addr) => {
         if (!addr) return ''
         return `${addr.slice(0, 6)}...${addr.slice(-4)}`
+    }
+
+    const toggleMusic = () => {
+        const isPlaying = soundManager.toggleMusic()
+        setIsMusicPlaying(isPlaying)
     }
 
     return (
@@ -35,6 +43,19 @@ const Header = ({ onConnect }) => {
 
                     {/* Right Section */}
                     <div className="flex items-center gap-3">
+                        {/* Music Toggle Button */}
+                        <button
+                            onClick={toggleMusic}
+                            className="p-2 bg-gray-800/50 hover:bg-gray-700/50 border border-gray-700/50 rounded-lg transition-all group"
+                            title={isMusicPlaying ? 'Mute Music' : 'Play Music'}
+                        >
+                            {isMusicPlaying ? (
+                                <Volume2 className="w-5 h-5 text-purple-400 group-hover:text-purple-300" />
+                            ) : (
+                                <VolumeX className="w-5 h-5 text-gray-500 group-hover:text-gray-400" />
+                            )}
+                        </button>
+
                         {/* Contract Verification Button */}
                         <a
                             href={`${NETWORK_CONFIG.blockExplorer}/address/${CONTRACT_ADDRESS}#code`}

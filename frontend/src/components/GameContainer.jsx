@@ -1,6 +1,7 @@
-import { useState } from 'react'
-import { useAccount } from 'wagmi'
-import { AnimatePresence } from 'framer-motion'
+import { useState, useEffect, useMemo } from 'react'
+import { useAccount, useReadContract } from 'wagmi'
+import { AnimatePresence, motion } from 'framer-motion'
+import { CONTRACT_ADDRESS, ROCK_PAPER_SCISSORS_ABI } from '../config/contracts'
 import Header from './Header'
 import ConnectWallet from './ConnectWallet'
 import GameBoard from './GameBoard'
@@ -10,16 +11,91 @@ import GameResult from './GameResult'
 import ParticleBackground from './ParticleBackground'
 
 const GameContainer = () => {
-    const { isConnected } = useAccount()
+    const { isConnected, address } = useAccount()
     const [showConnectModal, setShowConnectModal] = useState(false)
     const [refreshTrigger, setRefreshTrigger] = useState(0)
     const [showResult, setShowResult] = useState(false)
     const [gameResult, setGameResult] = useState(null)
+    const [isBattleActive, setIsBattleActive] = useState(false)
+    const [games, setGames] = useState([])
+
+    // Get player's game IDs
+    const { data: gameIds } = useReadContract({
+        address: CONTRACT_ADDRESS,
+        abi: ROCK_PAPER_SCISSORS_ABI,
+        functionName: 'getPlayerGames',
+        args: [address],
+        enabled: !!address,
+    })
+
+    // Fetch all games
+    useEffect(() => {
+        const fetchGames = async () => {
+            if (!gameIds || gameIds.length === 0) {
+                setGames([])
+                return
+            }
+
+            try {
+                const { readContract } = await import('wagmi/actions')
+                const { config } = await import('../config/wagmi')
+
+                const gamePromises = gameIds.map(async (gameId) => {
+                    const game = await readContract(config, {
+                        address: CONTRACT_ADDRESS,
+                        abi: ROCK_PAPER_SCISSORS_ABI,
+                        functionName: 'getGame',
+                        args: [gameId],
+                    })
+                    return { ...game, gameId }
+                })
+
+                const fetchedGames = await Promise.all(gamePromises)
+                setGames(fetchedGames)
+            } catch (error) {
+                console.error('Error fetching games:', error)
+            }
+        }
+
+        fetchGames()
+    }, [gameIds, refreshTrigger])
+
+    // Calculate current streak
+    const currentStreak = useMemo(() => {
+        if (!games || games.length === 0) return 0
+
+        // Sort by gameId descending (most recent first)
+        const sortedGames = [...games].sort((a, b) => Number(b.gameId) - Number(a.gameId))
+
+        let streak = 0
+        for (const game of sortedGames) {
+            // Skip pending games
+            if (game.result === 0) continue
+
+            // If win, increment streak
+            if (game.result === 1) {
+                streak++
+            } else {
+                // Stop at first loss or draw
+                break
+            }
+        }
+
+        return streak
+    }, [games])
 
     const handleGameComplete = (result) => {
         console.log('🎲 Game completed:', result)
         setGameResult(result)
         setShowResult(true)
+    }
+
+    const handleBattleStart = () => {
+        setIsBattleActive(true)
+    }
+
+    const handleBattleEnd = () => {
+        setIsBattleActive(false)
     }
 
     const handlePlayAgain = () => {
@@ -76,14 +152,31 @@ const GameContainer = () => {
     return (
         <>
             <ParticleBackground />
-            <Header onConnect={() => setShowConnectModal(true)} />
 
-            <main className="min-h-screen py-8 px-4 relative z-10">
+            {/* Hide header during battle animation */}
+            <AnimatePresence>
+                {!isBattleActive && (
+                    <motion.div
+                        initial={{ y: -100, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: -100, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                    >
+                        <Header onConnect={() => setShowConnectModal(true)} />
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <main className={`min-h-screen px-4 relative z-10 ${isBattleActive ? 'pt-0' : 'py-8'}`}>
                 <div className="max-w-7xl mx-auto">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* Left Column - Game Board */}
                         <div className="lg:col-span-2 space-y-6">
-                            <GameBoard onGameComplete={handleGameComplete} />
+                            <GameBoard
+                                onGameComplete={handleGameComplete}
+                                onBattleStart={handleBattleStart}
+                                onBattleEnd={handleBattleEnd}
+                            />
                             <GameHistory triggerRefresh={refreshTrigger} />
                         </div>
 
@@ -101,7 +194,8 @@ const GameContainer = () => {
                     <GameResult
                         result={gameResult}
                         onClose={handleResultClose}
-                        onPlayAgain={handlePlayAgain}
+                        currentStreak={currentStreak}
+                        gameNumber={gameResult.gameId}
                     />
                 )}
             </AnimatePresence>

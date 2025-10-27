@@ -16,7 +16,8 @@ const GameHistory = ({ triggerRefresh }) => {
     const { address } = useAccount()
     const [expandedGame, setExpandedGame] = useState(null)
     const [showFullHistory, setShowFullHistory] = useState(false)
-    const [filterType, setFilterType] = useState('all') // all, win, loss, draw
+    const [filterType, setFilterType] = useState('all') // Filter for main view
+    const [modalFilterType, setModalFilterType] = useState('all') // Separate filter for modal
     const [searchId, setSearchId] = useState('')
     const [games, setGames] = useState([])
     const [isLoadingGames, setIsLoadingGames] = useState(false)
@@ -76,8 +77,29 @@ const GameHistory = ({ triggerRefresh }) => {
         if (triggerRefresh) refetch()
     }, [triggerRefresh, refetch])
 
-    // Filter and search games
-    const filteredGames = useMemo(() => {
+    // Reset modal filters when modal opens
+    useEffect(() => {
+        if (showFullHistory) {
+            setModalFilterType('all')
+            setSearchId('')
+        }
+    }, [showFullHistory])
+
+    // Disable body scroll when modal is open
+    useEffect(() => {
+        if (showFullHistory) {
+            document.body.style.overflow = 'hidden'
+        } else {
+            document.body.style.overflow = 'unset'
+        }
+
+        return () => {
+            document.body.style.overflow = 'unset'
+        }
+    }, [showFullHistory])
+
+    // Filter games for main view
+    const filteredGamesMain = useMemo(() => {
         if (!games || games.length === 0) return []
 
         let filtered = [...games]
@@ -85,10 +107,28 @@ const GameHistory = ({ triggerRefresh }) => {
         // Apply filter
         if (filterType !== 'all') {
             filtered = filtered.filter(({ game }) => {
-                // GameResult: 0=PENDING, 1=WIN, 2=LOSE, 3=DRAW
                 if (filterType === 'win') return game.result === 1
                 if (filterType === 'loss') return game.result === 2
                 if (filterType === 'draw') return game.result === 3
+                return true
+            })
+        }
+
+        return filtered.reverse() // Most recent first
+    }, [games, filterType])
+
+    // Filter games for modal
+    const filteredGamesModal = useMemo(() => {
+        if (!games || games.length === 0) return []
+
+        let filtered = [...games]
+
+        // Apply filter
+        if (modalFilterType !== 'all') {
+            filtered = filtered.filter(({ game }) => {
+                if (modalFilterType === 'win') return game.result === 1
+                if (modalFilterType === 'loss') return game.result === 2
+                if (modalFilterType === 'draw') return game.result === 3
                 return true
             })
         }
@@ -101,10 +141,10 @@ const GameHistory = ({ triggerRefresh }) => {
         }
 
         return filtered.reverse() // Most recent first
-    }, [games, filterType, searchId])
+    }, [games, modalFilterType, searchId])
 
     // Last 5 games for quick view
-    const recentGames = filteredGames.slice(0, 5)
+    const recentGames = filteredGamesMain.slice(0, 5)
 
     if (isLoading || isLoadingGames) {
         return (
@@ -137,7 +177,6 @@ const GameHistory = ({ triggerRefresh }) => {
     }
 
     const GameCard = ({ game, gameId, compact = false }) => {
-        // GameResult: 0=PENDING, 1=WIN, 2=LOSE, 3=DRAW
         const isWin = game.result === 1
         const isLoss = game.result === 2
         const isDraw = game.result === 3
@@ -145,11 +184,7 @@ const GameHistory = ({ triggerRefresh }) => {
         const isExpanded = expandedGame === gameId.toString()
 
         return (
-            <motion.div
-                layout
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
+            <div
                 className={`bg-gradient-to-br ${
                     isPending
                         ? 'from-yellow-900/40 to-orange-900/40 border-yellow-500/30'
@@ -163,7 +198,6 @@ const GameHistory = ({ triggerRefresh }) => {
             >
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        {/* Result Badge */}
                         <div
                             className={`px-3 py-1 rounded-full text-xs font-bold ${
                                 isPending
@@ -178,13 +212,12 @@ const GameHistory = ({ triggerRefresh }) => {
                             {isPending ? '⏳ PENDING' : isWin ? '🏆 WIN' : isLoss ? '💀 LOSS' : '🤝 DRAW'}
                         </div>
 
-                        {/* Choices */}
                         <div className="flex items-center gap-2">
                             <span className="text-2xl">{choiceEmojis[game.playerChoice]}</span>
                             <span className="text-gray-500 text-sm">vs</span>
                             <span className="text-2xl">
-                {game.houseChoice === 0 ? '❓' : choiceEmojis[game.houseChoice]}
-              </span>
+                                {game.houseChoice === 0 ? '❓' : choiceEmojis[game.houseChoice]}
+                            </span>
                         </div>
 
                         {!compact && (
@@ -196,7 +229,6 @@ const GameHistory = ({ triggerRefresh }) => {
                     </div>
 
                     <div className="flex items-center gap-4">
-                        {/* Payout */}
                         <div className="text-right">
                             {isPending ? (
                                 <>
@@ -226,7 +258,6 @@ const GameHistory = ({ triggerRefresh }) => {
                             )}
                         </div>
 
-                        {/* Expand icon */}
                         {isExpanded ? (
                             <ChevronUp className="w-5 h-5 text-gray-400" />
                         ) : (
@@ -235,14 +266,14 @@ const GameHistory = ({ triggerRefresh }) => {
                     </div>
                 </div>
 
-                {/* Expanded Details */}
                 <AnimatePresence>
                     {isExpanded && (
                         <motion.div
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: 'auto', opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
-                            className="mt-4 pt-4 border-t border-gray-700/50 space-y-2"
+                            transition={{ duration: 0.2 }}
+                            className="mt-4 pt-4 border-t border-gray-700/50 space-y-2 overflow-hidden"
                         >
                             <div className="grid grid-cols-2 gap-4 text-sm">
                                 <div>
@@ -262,8 +293,8 @@ const GameHistory = ({ triggerRefresh }) => {
                                 <div>
                                     <span className="text-gray-500">Timestamp:</span>
                                     <span className="text-white ml-2">
-                    {new Date(Number(game.timestamp) * 1000).toLocaleString()}
-                  </span>
+                                        {new Date(Number(game.timestamp) * 1000).toLocaleString()}
+                                    </span>
                                 </div>
                             </div>
 
@@ -278,7 +309,7 @@ const GameHistory = ({ triggerRefresh }) => {
                         </motion.div>
                     )}
                 </AnimatePresence>
-            </motion.div>
+            </div>
         )
     }
 
@@ -294,10 +325,10 @@ const GameHistory = ({ triggerRefresh }) => {
                     {games.length > 5 && (
                         <button
                             onClick={() => setShowFullHistory(true)}
-                            className="px-4 py-2 opacity-70 bg-purple-700 hover:bg-purple-500 text-white rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2"
+                            className="px-4 py-2 bg-purple-600/70 hover:bg-purple-500 text-white rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2"
                         >
                             <History className="w-4 h-4" />
-                            View All History
+                            View All
                         </button>
                     )}
                 </div>
@@ -316,87 +347,100 @@ const GameHistory = ({ triggerRefresh }) => {
             {/* Full History Modal */}
             <AnimatePresence>
                 {showFullHistory && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-                        onClick={() => setShowFullHistory(false)}
-                    >
-                        <motion.div
-                            initial={{ scale: 0.9, y: 50 }}
-                            animate={{ scale: 1, y: 0 }}
-                            exit={{ scale: 0.9, y: 50 }}
-                            className="bg-gray-900 border border-gray-700 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            {/* Modal Header */}
-                            <div className="p-6 border-b border-gray-700/50">
-                                <div className="flex items-center justify-between mb-4">
-                                    <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-                                        <History className="w-6 h-6 text-purple-400" />
-                                        Complete Match History
-                                    </h2>
-                                    <button
-                                        onClick={() => setShowFullHistory(false)}
-                                        className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
-                                    >
-                                        <X className="w-5 h-5 text-gray-400" />
-                                    </button>
-                                </div>
-
-                                {/* Filters and Search */}
-                                <div className="flex flex-col sm:flex-row gap-3">
-                                    {/* Filter Buttons */}
-                                    <div className="flex gap-2 flex-wrap">
-                                        {['all', 'win', 'loss', 'draw'].map((type) => (
-                                            <button
-                                                key={type}
-                                                onClick={() => setFilterType(type)}
-                                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                                                    filterType === type
-                                                        ? 'bg-purple-600 text-white'
-                                                        : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-                                                }`}
-                                            >
-                                                {type === 'all' && '📊 All'}
-                                                {type === 'win' && '🏆 Wins'}
-                                                {type === 'loss' && '💀 Losses'}
-                                                {type === 'draw' && '🤝 Draws'}
-                                            </button>
-                                        ))}
+                    <div className="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 p-0 m-0">
+                        <div className="h-full w-full flex items-center justify-center">
+                            <motion.div
+                                initial={{ scale: 0.95, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                exit={{ scale: 0.95, opacity: 0 }}
+                                transition={{ duration: 0.2 }}
+                                className="bg-gray-900 border-2 border-gray-700 rounded-2xl w-full mx-4 max-w-4xl h-[96vh] overflow-hidden shadow-2xl flex flex-col"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                {/* Modal Header - Fixed */}
+                                <div className="p-6 border-b border-gray-700/50 bg-gray-900/95 flex-shrink-0">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                                            <History className="w-6 h-6 text-purple-400" />
+                                            Complete Match History
+                                        </h2>
+                                        <button
+                                            onClick={() => setShowFullHistory(false)}
+                                            className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+                                        >
+                                            <X className="w-5 h-5 text-gray-400 hover:text-white" />
+                                        </button>
                                     </div>
 
-                                    {/* Search Input */}
-                                    <div className="relative flex-1">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                                        <input
-                                            type="text"
-                                            placeholder="Search by Game ID..."
-                                            value={searchId}
-                                            onChange={(e) => setSearchId(e.target.value)}
-                                            className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition-colors"
-                                        />
+                                    {/* Filters and Search */}
+                                    <div className="flex flex-col sm:flex-row gap-3">
+                                        {/* Filter Buttons */}
+                                        <div className="flex gap-2 flex-wrap">
+                                            {['all', 'win', 'loss', 'draw'].map((type) => (
+                                                <button
+                                                    key={type}
+                                                    onClick={() => setModalFilterType(type)}
+                                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                                                        modalFilterType === type
+                                                            ? 'bg-purple-600 text-white'
+                                                            : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                                                    }`}
+                                                >
+                                                    {type === 'all' && '📊 All'}
+                                                    {type === 'win' && '🏆 Wins'}
+                                                    {type === 'loss' && '💀 Losses'}
+                                                    {type === 'draw' && '🤝 Draws'}
+                                                </button>
+                                            ))}
+                                        </div>
+
+                                        {/* Search Input */}
+                                        <div className="relative flex-1">
+                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                                            <input
+                                                type="text"
+                                                placeholder="Search by Game ID..."
+                                                value={searchId}
+                                                onChange={(e) => setSearchId(e.target.value)}
+                                                className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition-colors"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Modal Content */}
-                            <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)] custom-scrollbar">
-                                <div className="space-y-3">
-                                    {filteredGames.length > 0 ? (
-                                        filteredGames.map(({ game, id }) => (
-                                            <GameCard key={id.toString()} game={game} gameId={id} />
-                                        ))
-                                    ) : (
-                                        <p className="text-gray-400 text-center py-12">
-                                            No matches found with current filters
-                                        </p>
-                                    )}
+                                {/* Modal Content - Scrollable */}
+                                <div className="flex-1 overflow-y-auto p-6 modal-scroll">
+                                    <style>{`
+                                        .modal-scroll::-webkit-scrollbar {
+                                            width: 10px;
+                                        }
+                                        .modal-scroll::-webkit-scrollbar-track {
+                                            background: #1f2937;
+                                            border-radius: 5px;
+                                        }
+                                        .modal-scroll::-webkit-scrollbar-thumb {
+                                            background: #6b21a8;
+                                            border-radius: 5px;
+                                        }
+                                        .modal-scroll::-webkit-scrollbar-thumb:hover {
+                                            background: #7c3aed;
+                                        }
+                                    `}</style>
+                                    <div className="space-y-3">
+                                        {filteredGamesModal.length > 0 ? (
+                                            filteredGamesModal.map(({ game, id }) => (
+                                                <GameCard key={id.toString()} game={game} gameId={id} />
+                                            ))
+                                        ) : (
+                                            <p className="text-gray-400 text-center py-12">
+                                                No matches found with current filters
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        </motion.div>
-                    </motion.div>
+                            </motion.div>
+                        </div>
+                    </div>
                 )}
             </AnimatePresence>
         </>
