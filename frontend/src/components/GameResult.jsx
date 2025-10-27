@@ -26,26 +26,55 @@ const GameResult = ({ result, onClose, currentStreak, gameNumber }) => {
     useEffect(() => {
         if (isWin) {
             soundManager.play('win')
-            // Colorful confetti for wins
+            // Bright sparkle confetti for wins - from bottom corners spreading everywhere
             const duration = 3000
             const end = Date.now() + duration
-            const colors = ['#a855f7', '#ec4899', '#f59e0b', '#10b981']
+            const colors = ['#ffd700', '#ffed4e', '#ffffff', '#fbbf24', '#fde047', '#fef08a']
 
             ;(function frame() {
+                // Bottom left burst
                 confetti({
                     particleCount: 3,
                     angle: 60,
-                    spread: 55,
-                    origin: { x: 0 },
+                    spread: 100,
+                    origin: { x: 0.1, y: 0.9 },
                     colors: colors,
+                    shapes: ['star', 'circle'],
+                    scalar: 0.8,
+                    gravity: 0.6,
+                    ticks: 300,
                 })
+
+                // Bottom right burst
                 confetti({
                     particleCount: 3,
                     angle: 120,
-                    spread: 55,
-                    origin: { x: 1 },
+                    spread: 100,
+                    origin: { x: 0.9, y: 0.9 },
                     colors: colors,
+                    shapes: ['star', 'circle'],
+                    scalar: 0.8,
+                    gravity: 0.6,
+                    ticks: 300,
                 })
+
+                // Random sparkles spreading everywhere
+                if (Math.random() > 0.6) {
+                    confetti({
+                        particleCount: 2,
+                        angle: Math.random() * 360,
+                        spread: 120,
+                        origin: {
+                            x: Math.random() * 0.8 + 0.1,
+                            y: Math.random() * 0.3 + 0.6
+                        },
+                        colors: colors,
+                        shapes: ['star'],
+                        scalar: 0.7,
+                        gravity: 0.5,
+                        ticks: 200,
+                    })
+                }
 
                 if (Date.now() < end) {
                     requestAnimationFrame(frame)
@@ -142,31 +171,7 @@ const GameResult = ({ result, onClose, currentStreak, gameNumber }) => {
                                     : 'border-yellow-500/50'
                         } rounded-2xl p-6 shadow-2xl overflow-hidden`}
                     >
-                        {/* Animated Particles Background */}
-                        {isWin && (
-                            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                                {[...Array(15)].map((_, i) => (
-                                    <motion.div
-                                        key={i}
-                                        className="absolute w-1.5 h-1.5 bg-yellow-400 rounded-full"
-                                        initial={{
-                                            x: Math.random() * 100 + '%',
-                                            y: '100%',
-                                            opacity: 0,
-                                        }}
-                                        animate={{
-                                            y: '-20%',
-                                            opacity: [0, 1, 0],
-                                        }}
-                                        transition={{
-                                            duration: Math.random() * 2 + 2,
-                                            repeat: Infinity,
-                                            delay: Math.random() * 2,
-                                        }}
-                                    />
-                                ))}
-                            </div>
-                        )}
+                        {/* REMOVED Animated Particles Background - This was causing the yellow dots */}
 
                         {/* Close Button - Top Right */}
                         <button
