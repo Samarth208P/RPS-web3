@@ -2,27 +2,41 @@ import { useState, useMemo, useEffect } from 'react'
 import { useAccount, useReadContract } from 'wagmi'
 import { formatEther } from 'viem'
 import { Clock, ExternalLink, ChevronDown, ChevronUp, History, Filter, Search, X, Trophy, Flame } from 'lucide-react'
-import { CONTRACT_ADDRESS, ROCK_PAPER_SCISSORS_ABI, CHOICE_NAMES, RESULT_NAMES } from '../config/contracts'
+import { CONTRACT_ADDRESS, ROCK_PAPER_SCISSORS_ABI } from '../config/contracts'
 import { NETWORK_CONFIG } from '../config/wagmi'
 import { motion, AnimatePresence } from 'framer-motion'
 
+// ✅ Aligned with contract Choice enum: ROCK=1, PAPER=2, SCISSORS=3
 const choiceEmojis = {
     1: '✊',
     2: '✋',
     3: '✌️',
 }
 
+const CHOICE_NAMES = {
+    0: 'None',
+    1: 'Rock',
+    2: 'Paper',
+    3: 'Scissors',
+}
+
+const RESULT_NAMES = {
+    0: 'Pending',
+    1: 'Win',
+    2: 'Loss',
+    3: 'Draw',
+}
+
 const GameHistory = ({ triggerRefresh }) => {
     const { address } = useAccount()
     const [expandedGame, setExpandedGame] = useState(null)
     const [showFullHistory, setShowFullHistory] = useState(false)
-    const [filterType, setFilterType] = useState('all') // Filter for main view
-    const [modalFilterType, setModalFilterType] = useState('all') // Separate filter for modal
+    const [filterType, setFilterType] = useState('all')
+    const [modalFilterType, setModalFilterType] = useState('all')
     const [searchId, setSearchId] = useState('')
     const [games, setGames] = useState([])
     const [isLoadingGames, setIsLoadingGames] = useState(false)
 
-    // Fetch game IDs for the player
     const { data: gameIds, isLoading, refetch } = useReadContract({
         address: CONTRACT_ADDRESS,
         abi: ROCK_PAPER_SCISSORS_ABI,
@@ -31,7 +45,6 @@ const GameHistory = ({ triggerRefresh }) => {
         enabled: !!address,
     })
 
-    // Fetch individual game details
     useEffect(() => {
         const fetchGames = async () => {
             if (!gameIds || gameIds.length === 0) {
@@ -44,7 +57,6 @@ const GameHistory = ({ triggerRefresh }) => {
                 const { readContract } = await import('wagmi/actions')
                 const { config } = await import('../config/wagmi')
 
-                // Fetch all games in parallel
                 const gamePromises = gameIds.map(async (gameId) => {
                     try {
                         const game = await readContract(config, {
@@ -72,12 +84,10 @@ const GameHistory = ({ triggerRefresh }) => {
         fetchGames()
     }, [gameIds])
 
-    // Refetch when triggerRefresh changes
     useEffect(() => {
         if (triggerRefresh) refetch()
     }, [triggerRefresh, refetch])
 
-    // Reset modal filters when modal opens
     useEffect(() => {
         if (showFullHistory) {
             setModalFilterType('all')
@@ -85,7 +95,6 @@ const GameHistory = ({ triggerRefresh }) => {
         }
     }, [showFullHistory])
 
-    // Disable body scroll when modal is open
     useEffect(() => {
         if (showFullHistory) {
             document.body.style.overflow = 'hidden'
@@ -98,13 +107,11 @@ const GameHistory = ({ triggerRefresh }) => {
         }
     }, [showFullHistory])
 
-    // Filter games for main view
     const filteredGamesMain = useMemo(() => {
         if (!games || games.length === 0) return []
 
         let filtered = [...games]
 
-        // Apply filter
         if (filterType !== 'all') {
             filtered = filtered.filter(({ game }) => {
                 if (filterType === 'win') return game.result === 1
@@ -114,16 +121,14 @@ const GameHistory = ({ triggerRefresh }) => {
             })
         }
 
-        return filtered.reverse() // Most recent first
+        return filtered.reverse()
     }, [games, filterType])
 
-    // Filter games for modal
     const filteredGamesModal = useMemo(() => {
         if (!games || games.length === 0) return []
 
         let filtered = [...games]
 
-        // Apply filter
         if (modalFilterType !== 'all') {
             filtered = filtered.filter(({ game }) => {
                 if (modalFilterType === 'win') return game.result === 1
@@ -133,17 +138,15 @@ const GameHistory = ({ triggerRefresh }) => {
             })
         }
 
-        // Apply search
         if (searchId) {
             filtered = filtered.filter(({ id }) =>
                 id.toString().toLowerCase().includes(searchId.toLowerCase())
             )
         }
 
-        return filtered.reverse() // Most recent first
+        return filtered.reverse()
     }, [games, modalFilterType, searchId])
 
-    // Last 5 games for quick view
     const recentGames = filteredGamesMain.slice(0, 5)
 
     if (isLoading || isLoadingGames) {
@@ -298,7 +301,7 @@ const GameHistory = ({ triggerRefresh }) => {
                                 </div>
                             </div>
 
-                            {game.randomNumber !== '0x0000000000000000000000000000000000000000000000000000000000000000' && (
+                            {game.randomNumber && game.randomNumber !== '0x0000000000000000000000000000000000000000000000000000000000000000' && (
                                 <div className="text-xs">
                                     <span className="text-gray-500">Random Number:</span>
                                     <div className="text-white font-mono bg-gray-900/50 p-2 rounded mt-1 break-all">
@@ -315,7 +318,6 @@ const GameHistory = ({ triggerRefresh }) => {
 
     return (
         <>
-            {/* Quick View - Last 5 Matches */}
             <div className="bg-gray-800/20 rounded-2xl p-6 border border-gray-700/50">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
@@ -344,7 +346,6 @@ const GameHistory = ({ triggerRefresh }) => {
                 </div>
             </div>
 
-            {/* Full History Modal */}
             <AnimatePresence>
                 {showFullHistory && (
                     <div className="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 p-0 m-0">
@@ -357,7 +358,6 @@ const GameHistory = ({ triggerRefresh }) => {
                                 className="bg-gray-900 border-2 border-gray-700 rounded-2xl w-full mx-4 max-w-4xl h-[96vh] overflow-hidden shadow-2xl flex flex-col"
                                 onClick={(e) => e.stopPropagation()}
                             >
-                                {/* Modal Header - Fixed */}
                                 <div className="p-6 border-b border-gray-700/50 bg-gray-900/95 flex-shrink-0">
                                     <div className="flex items-center justify-between mb-4">
                                         <h2 className="text-2xl font-bold text-white flex items-center gap-3">
@@ -372,9 +372,7 @@ const GameHistory = ({ triggerRefresh }) => {
                                         </button>
                                     </div>
 
-                                    {/* Filters and Search */}
                                     <div className="flex flex-col sm:flex-row gap-3">
-                                        {/* Filter Buttons */}
                                         <div className="flex gap-2 flex-wrap">
                                             {['all', 'win', 'loss', 'draw'].map((type) => (
                                                 <button
@@ -394,7 +392,6 @@ const GameHistory = ({ triggerRefresh }) => {
                                             ))}
                                         </div>
 
-                                        {/* Search Input */}
                                         <div className="relative flex-1">
                                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                                             <input
@@ -408,7 +405,6 @@ const GameHistory = ({ triggerRefresh }) => {
                                     </div>
                                 </div>
 
-                                {/* Modal Content - Scrollable */}
                                 <div className="flex-1 overflow-y-auto p-6 modal-scroll">
                                     <style>{`
                                         .modal-scroll::-webkit-scrollbar {

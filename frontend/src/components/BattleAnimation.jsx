@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect, useRef } from 'react'
-import { soundManager } from '../utils/soundManager'
+import { soundManager } from '../../../../Project/rock-paper-scissors-web3/frontend/src/utils/soundManager.js'
 import { Zap, Flame, Sparkles, Target } from 'lucide-react'
 
 const choiceEmojis = {

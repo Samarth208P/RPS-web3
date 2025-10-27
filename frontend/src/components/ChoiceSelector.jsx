@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { CHOICES } from '../config/contracts'
+import { CHOICES } from '../../../../Project/rock-paper-scissors-web3/frontend/src/config/contracts.js'
 import { Sparkles } from 'lucide-react'
 
 const choices = [

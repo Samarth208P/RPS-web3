@@ -1,184 +1,9 @@
-export const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS || ''
-export const PYTH_ENTROPY_ADDRESS = import.meta.env.VITE_PYTH_ENTROPY_ADDRESS || '0x41c9e39574f40ad34c79f1c99b66a45efb830d4c'
-export const ENTROPY_PROVIDER = import.meta.env.VITE_ENTROPY_PROVIDER || ''
+// Contract addresses from environment
+export const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS
+export const PYTH_ENTROPY_ADDRESS = import.meta.env.VITE_PYTH_ENTROPY_ADDRESS
+export const ENTROPY_PROVIDER = import.meta.env.VITE_ENTROPY_PROVIDER
 
-// Contract ABI
-export const ROCK_PAPER_SCISSORS_ABI = [
-    {
-        "type": "constructor",
-        "inputs": [
-            { "name": "_entropyAddress", "type": "address", "internalType": "address" },
-            { "name": "_entropyProvider", "type": "address", "internalType": "address" },
-            { "name": "_drawsRefund", "type": "bool", "internalType": "bool" }
-        ],
-        "stateMutability": "nonpayable"
-    },
-    {
-        "type": "function",
-        "name": "playGame",
-        "inputs": [
-            { "name": "_choice", "type": "uint8", "internalType": "enum RockPaperScissors.Choice" },
-            { "name": "_userRandomNumber", "type": "bytes32", "internalType": "bytes32" }
-        ],
-        "outputs": [{ "name": "gameId", "type": "uint256", "internalType": "uint256" }],
-        "stateMutability": "payable"
-    },
-    {
-        "type": "function",
-        "name": "revealGame",
-        "inputs": [
-            { "name": "_gameId", "type": "uint256", "internalType": "uint256" },
-            { "name": "_userRandomNumber", "type": "bytes32", "internalType": "bytes32" },
-            { "name": "_providerRevelation", "type": "bytes32", "internalType": "bytes32" }
-        ],
-        "outputs": [],
-        "stateMutability": "nonpayable"
-    },
-    {
-        "type": "function",
-        "name": "getGame",
-        "inputs": [{ "name": "_gameId", "type": "uint256", "internalType": "uint256" }],
-        "outputs": [
-            {
-                "name": "",
-                "type": "tuple",
-                "internalType": "struct RockPaperScissors.Game",
-                "components": [
-                    { "name": "player", "type": "address", "internalType": "address" },
-                    { "name": "betAmount", "type": "uint256", "internalType": "uint256" },
-                    { "name": "playerChoice", "type": "uint8", "internalType": "enum RockPaperScissors.Choice" },
-                    { "name": "houseChoice", "type": "uint8", "internalType": "enum RockPaperScissors.Choice" },
-                    { "name": "result", "type": "uint8", "internalType": "enum RockPaperScissors.GameResult" },
-                    { "name": "entropySequenceNumber", "type": "uint64", "internalType": "uint64" },
-                    { "name": "randomNumber", "type": "bytes32", "internalType": "bytes32" },
-                    { "name": "timestamp", "type": "uint256", "internalType": "uint256" },
-                    { "name": "payout", "type": "uint256", "internalType": "uint256" },
-                    { "name": "revealed", "type": "bool", "internalType": "bool" }
-                ]
-            }
-        ],
-        "stateMutability": "view"
-    },
-    {
-        "type": "function",
-        "name": "getStats",
-        "inputs": [],
-        "outputs": [
-            { "name": "totalGames", "type": "uint256", "internalType": "uint256" },
-            { "name": "wins", "type": "uint256", "internalType": "uint256" },
-            { "name": "losses", "type": "uint256", "internalType": "uint256" },
-            { "name": "draws", "type": "uint256", "internalType": "uint256" },
-            { "name": "houseBalance", "type": "uint256", "internalType": "uint256" }
-        ],
-        "stateMutability": "view"
-    },
-    {
-        "type": "function",
-        "name": "getEntropyFee",
-        "inputs": [],
-        "outputs": [{ "name": "", "type": "uint128", "internalType": "uint128" }],
-        "stateMutability": "view"
-    },
-    {
-        "type": "function",
-        "name": "getPlayerGames",
-        "inputs": [{ "name": "_player", "type": "address", "internalType": "address" }],
-        "outputs": [{ "name": "", "type": "uint256[]", "internalType": "uint256[]" }],
-        "stateMutability": "view"
-    },
-    {
-        "type": "function",
-        "name": "games",
-        "inputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
-        "outputs": [
-            { "name": "player", "type": "address", "internalType": "address" },
-            { "name": "betAmount", "type": "uint256", "internalType": "uint256" },
-            { "name": "playerChoice", "type": "uint8", "internalType": "enum RockPaperScissors.Choice" },
-            { "name": "houseChoice", "type": "uint8", "internalType": "enum RockPaperScissors.Choice" },
-            { "name": "result", "type": "uint8", "internalType": "enum RockPaperScissors.GameResult" },
-            { "name": "entropySequenceNumber", "type": "uint64", "internalType": "uint64" },
-            { "name": "randomNumber", "type": "bytes32", "internalType": "bytes32" },
-            { "name": "timestamp", "type": "uint256", "internalType": "uint256" },
-            { "name": "payout", "type": "uint256", "internalType": "uint256" },
-            { "name": "revealed", "type": "bool", "internalType": "bool" }
-        ],
-        "stateMutability": "view"
-    },
-    {
-        "type": "function",
-        "name": "choiceToString",
-        "inputs": [{ "name": "_choice", "type": "uint8", "internalType": "enum RockPaperScissors.Choice" }],
-        "outputs": [{ "name": "", "type": "string", "internalType": "string" }],
-        "stateMutability": "pure"
-    },
-    {
-        "type": "function",
-        "name": "owner",
-        "inputs": [],
-        "outputs": [{ "name": "", "type": "address", "internalType": "address" }],
-        "stateMutability": "view"
-    },
-    {
-        "type": "function",
-        "name": "drawsRefund",
-        "inputs": [],
-        "outputs": [{ "name": "", "type": "bool", "internalType": "bool" }],
-        "stateMutability": "view"
-    },
-    {
-        "type": "event",
-        "name": "GameCreated",
-        "inputs": [
-            { "name": "gameId", "type": "uint256", "indexed": true, "internalType": "uint256" },
-            { "name": "player", "type": "address", "indexed": true, "internalType": "address" },
-            { "name": "betAmount", "type": "uint256", "indexed": false, "internalType": "uint256" },
-            { "name": "playerChoice", "type": "uint8", "indexed": false, "internalType": "enum RockPaperScissors.Choice" },
-            { "name": "entropySequenceNumber", "type": "uint64", "indexed": false, "internalType": "uint64" }
-        ],
-        "anonymous": false
-    },
-    {
-        "type": "event",
-        "name": "GameRevealed",
-        "inputs": [
-            { "name": "gameId", "type": "uint256", "indexed": true, "internalType": "uint256" },
-            { "name": "player", "type": "address", "indexed": true, "internalType": "address" },
-            { "name": "playerChoice", "type": "uint8", "indexed": false, "internalType": "enum RockPaperScissors.Choice" },
-            { "name": "houseChoice", "type": "uint8", "indexed": false, "internalType": "enum RockPaperScissors.Choice" },
-            { "name": "result", "type": "uint8", "indexed": false, "internalType": "enum RockPaperScissors.GameResult" },
-            { "name": "payout", "type": "uint256", "indexed": false, "internalType": "uint256" },
-            { "name": "randomNumber", "type": "bytes32", "indexed": false, "internalType": "bytes32" }
-        ],
-        "anonymous": false
-    },
-    {
-        "type": "error",
-        "name": "InvalidBetAmount",
-        "inputs": []
-    },
-    {
-        "type": "error",
-        "name": "InvalidChoice",
-        "inputs": []
-    },
-    {
-        "type": "error",
-        "name": "InsufficientHouseBalance",
-        "inputs": []
-    },
-    {
-        "type": "error",
-        "name": "GameAlreadyRevealed",
-        "inputs": []
-    },
-    {
-        "type": "error",
-        "name": "TransferFailed",
-        "inputs": []
-    }
-]
-
-// Game constants
+// Game choices (matching contract enum)
 export const CHOICES = {
     NONE: 0,
     ROCK: 1,
@@ -200,5 +25,196 @@ export const RESULT_NAMES = {
     3: 'Draw',
 }
 
-export const MIN_BET = '0.001' // ETH
-export const MAX_BET = '1' // ETH
+// Updated bet limits (Phase 1)
+export const MIN_BET = '0.0001' // ETH
+export const MAX_BET = '100' // ETH
+
+// Updated ABI with Phase 1 features
+export const ROCK_PAPER_SCISSORS_ABI = [
+    // Read functions
+    {
+        inputs: [{ name: '_gameId', type: 'uint256' }],
+        name: 'getGame',
+        outputs: [
+            {
+                components: [
+                    { name: 'player', type: 'address' },
+                    { name: 'betAmount', type: 'uint256' },
+                    { name: 'playerChoice', type: 'uint8' },
+                    { name: 'houseChoice', type: 'uint8' },
+                    { name: 'result', type: 'uint8' },
+                    { name: 'entropySequenceNumber', type: 'uint64' },
+                    { name: 'randomNumber', type: 'bytes32' },
+                    { name: 'timestamp', type: 'uint256' },
+                    { name: 'payout', type: 'uint256' },
+                    { name: 'revealed', type: 'bool' },
+                ],
+                type: 'tuple',
+            },
+        ],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [{ name: '_player', type: 'address' }],
+        name: 'getPlayerGames',
+        outputs: [{ name: '', type: 'uint256[]' }],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [],
+        name: 'getStats',
+        outputs: [
+            { name: 'totalGames', type: 'uint256' },
+            { name: 'wins', type: 'uint256' },
+            { name: 'losses', type: 'uint256' },
+            { name: 'draws', type: 'uint256' },
+            { name: 'houseBalance', type: 'uint256' },
+        ],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [],
+        name: 'getEntropyFee',
+        outputs: [{ name: '', type: 'uint256' }],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    // Phase 1: Username functions
+    {
+        inputs: [{ name: '', type: 'address' }],
+        name: 'usernames',
+        outputs: [{ name: '', type: 'string' }],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [{ name: '_username', type: 'string' }],
+        name: 'isUsernameTaken',
+        outputs: [{ name: '', type: 'bool' }],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [{ name: '_username', type: 'string' }],
+        name: 'setUsername',
+        outputs: [],
+        stateMutability: 'nonpayable',
+        type: 'function',
+    },
+    // Phase 1: Welcome bonus functions
+    {
+        inputs: [{ name: '', type: 'address' }],
+        name: 'hasClaimedWelcomeBonus',
+        outputs: [{ name: '', type: 'bool' }],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [],
+        name: 'welcomeBonusAmount',
+        outputs: [{ name: '', type: 'uint256' }],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [],
+        name: 'welcomeBonusEnabled',
+        outputs: [{ name: '', type: 'bool' }],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [],
+        name: 'claimWelcomeBonus',
+        outputs: [],
+        stateMutability: 'nonpayable',
+        type: 'function',
+    },
+    // Phase 1: Dynamic bet limits
+    {
+        inputs: [],
+        name: 'minBet',
+        outputs: [{ name: '', type: 'uint256' }],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [],
+        name: 'maxBet',
+        outputs: [{ name: '', type: 'uint256' }],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    // Write functions
+    {
+        inputs: [
+            { name: '_choice', type: 'uint8' },
+            { name: '_userRandomness', type: 'bytes32' },
+        ],
+        name: 'playGame',
+        outputs: [{ name: 'gameId', type: 'uint256' }],
+        stateMutability: 'payable',
+        type: 'function',
+    },
+    {
+        inputs: [],
+        name: 'withdrawPayout',
+        outputs: [],
+        stateMutability: 'nonpayable',
+        type: 'function',
+    },
+    {
+        inputs: [{ name: '', type: 'address' }],
+        name: 'pendingPayouts',
+        outputs: [{ name: '', type: 'uint256' }],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    // Events
+    {
+        anonymous: false,
+        inputs: [
+            { indexed: true, name: 'gameId', type: 'uint256' },
+            { indexed: true, name: 'player', type: 'address' },
+            { indexed: false, name: 'betAmount', type: 'uint256' },
+            { indexed: false, name: 'playerChoice', type: 'uint8' },
+            { indexed: false, name: 'entropySequenceNumber', type: 'uint64' },
+        ],
+        name: 'GameCreated',
+        type: 'event',
+    },
+    {
+        anonymous: false,
+        inputs: [
+            { indexed: true, name: 'gameId', type: 'uint256' },
+            { indexed: true, name: 'player', type: 'address' },
+            { indexed: false, name: 'playerChoice', type: 'uint8' },
+            { indexed: false, name: 'houseChoice', type: 'uint8' },
+            { indexed: false, name: 'result', type: 'uint8' },
+            { indexed: false, name: 'payout', type: 'uint256' },
+        ],
+        name: 'GameRevealed',
+        type: 'event',
+    },
+    {
+        anonymous: false,
+        inputs: [
+            { indexed: true, name: 'user', type: 'address' },
+            { indexed: false, name: 'username', type: 'string' },
+        ],
+        name: 'UsernameSet',
+        type: 'event',
+    },
+    {
+        anonymous: false,
+        inputs: [
+            { indexed: true, name: 'user', type: 'address' },
+            { indexed: false, name: 'amount', type: 'uint256' },
+        ],
+        name: 'WelcomeBonusClaimed',
+        type: 'event',
+    },
+]

@@ -115,7 +115,7 @@ soundManager.preload('select', '/sounds/select.mp3')
 soundManager.preload('shake', '/sounds/shake.mp3')
 soundManager.preload('reveal', '/sounds/reveal.mp3')
 soundManager.preload('win', '/sounds/win.mp3')
-soundManager.preload('loss', '/sounds/lose.mp3')
+soundManager.preload('lose', '/sounds/lose.mp3')
 soundManager.preload('draw', '/sounds/draw.mp3')
 
 // Preload background music

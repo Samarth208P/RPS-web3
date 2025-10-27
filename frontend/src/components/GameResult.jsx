@@ -1,11 +1,11 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { Trophy, X, Flame, Sparkles, Zap, ExternalLink, Target } from 'lucide-react'
 import { formatEther } from 'viem'
-import { CHOICE_NAMES } from '../config/contracts'
-import { NETWORK_CONFIG } from '../config/wagmi'
+import { CHOICE_NAMES } from '../../../../Project/rock-paper-scissors-web3/frontend/src/config/contracts.js'
+import { NETWORK_CONFIG } from '../../../../Project/rock-paper-scissors-web3/frontend/src/config/wagmi.js'
 import confetti from 'canvas-confetti'
 import { useEffect } from 'react'
-import { soundManager } from '../utils/soundManager'
+import { soundManager } from '../../../../Project/rock-paper-scissors-web3/frontend/src/utils/soundManager.js'
 
 const choiceEmojis = {
     1: '✊',

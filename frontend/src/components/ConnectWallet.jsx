@@ -1,20 +1,36 @@
-import { X, Wallet, Zap, Shield, TrendingUp, Sparkles, Flame } from 'lucide-react'
+import { X, Wallet, Zap, Shield, Sparkles, Flame, AlertCircle, Network } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useConnect, useAccount } from 'wagmi'
-import { useEffect } from 'react'
+import { useConnect, useAccount, useSwitchChain, useChainId } from 'wagmi'
+import { useEffect, useState } from 'react'
+import { baseSepolia } from 'wagmi/chains'
+import { toast } from 'react-hot-toast'
 
 const ConnectWallet = ({ onClose }) => {
     const { connect, connectors, isPending, error } = useConnect()
     const { isConnected } = useAccount()
+    const { switchChain } = useSwitchChain()
+    const currentChainId = useChainId()
+    const [showNetworkWarning, setShowNetworkWarning] = useState(false)
 
-    // Auto-close when connected
+    const isCorrectNetwork = currentChainId === baseSepolia.id
+
+    // Check network after connection
     useEffect(() => {
-        if (isConnected && onClose) {
+        if (isConnected && !isCorrectNetwork) {
+            setShowNetworkWarning(true)
+        } else {
+            setShowNetworkWarning(false)
+        }
+    }, [isConnected, isCorrectNetwork])
+
+    // Auto-close when connected and on correct network
+    useEffect(() => {
+        if (isConnected && isCorrectNetwork && onClose) {
             setTimeout(() => {
                 onClose()
             }, 500)
         }
-    }, [isConnected, onClose])
+    }, [isConnected, isCorrectNetwork, onClose])
 
     const handleConnect = (connector) => {
         try {
@@ -22,6 +38,93 @@ const ConnectWallet = ({ onClose }) => {
         } catch (err) {
             console.error('Connection error:', err)
         }
+    }
+
+    const handleSwitchNetwork = async () => {
+        try {
+            await switchChain({ chainId: baseSepolia.id })
+            toast.success('Network switched successfully!', {
+                icon: '✅',
+                style: {
+                    background: '#1f2937',
+                    color: '#fff',
+                    border: '1px solid #10b981',
+                },
+            })
+            setShowNetworkWarning(false)
+        } catch (error) {
+            console.error('Network switch error:', error)
+
+            // If network doesn't exist, try to add it
+            if (error.code === 4902 || error.message?.includes('Unrecognized chain') || error.message?.includes('does not support programmatic chain')) {
+                await handleAddNetwork()
+            } else {
+                toast.error(error.shortMessage || error.message || 'Failed to switch network', {
+                    style: {
+                        background: '#1f2937',
+                        color: '#fff',
+                        border: '1px solid #ef4444',
+                    },
+                })
+            }
+        }
+    }
+
+    const handleAddNetwork = async () => {
+        try {
+            if (!window.ethereum) {
+                toast.error('Please install MetaMask', {
+                    style: {
+                        background: '#1f2937',
+                        color: '#fff',
+                        border: '1px solid #ef4444',
+                    },
+                })
+                return
+            }
+
+            await window.ethereum.request({
+                method: 'wallet_addEthereumChain',
+                params: [
+                    {
+                        chainId: `0x${baseSepolia.id.toString(16)}`,
+                        chainName: baseSepolia.name,
+                        nativeCurrency: {
+                            name: 'ETH',
+                            symbol: 'ETH',
+                            decimals: 18,
+                        },
+                        rpcUrls: ['https://sepolia.base.org'],
+                        blockExplorerUrls: ['https://sepolia-explorer.base.org'],
+                    },
+                ],
+            })
+
+            toast.success('Base Sepolia added successfully!', {
+                icon: '✅',
+                style: {
+                    background: '#1f2937',
+                    color: '#fff',
+                    border: '1px solid #10b981',
+                },
+            })
+
+            setShowNetworkWarning(false)
+        } catch (error) {
+            console.error('Add network error:', error)
+            toast.error(error.message || 'Failed to add network', {
+                style: {
+                    background: '#1f2937',
+                    color: '#fff',
+                    border: '1px solid #ef4444',
+                },
+            })
+        }
+    }
+
+    const handleClose = (e) => {
+        e.stopPropagation()
+        if (onClose) onClose()
     }
 
     const containerVariants = {
@@ -71,7 +174,7 @@ const ConnectWallet = ({ onClose }) => {
                 animate="visible"
                 exit="exit"
                 className="fixed inset-0 z-[9999] flex items-center justify-center p-4 backdrop-blur-sm"
-                onClick={onClose}
+                onClick={handleClose}
                 style={{
                     backgroundColor: 'rgba(0, 0, 0, 0.85)',
                 }}
@@ -146,10 +249,10 @@ const ConnectWallet = ({ onClose }) => {
                             ))}
                         </div>
 
-                        {/* Close Button */}
+                        {/* Close Button - FIXED */}
                         <button
-                            onClick={onClose}
-                            className="absolute top-4 right-4 z-10 p-2 hover:bg-white/10 rounded-lg transition-all duration-200 group"
+                            onClick={handleClose}
+                            className="absolute top-4 right-4 z-50 p-2 bg-gray-800/80 hover:bg-gray-700 rounded-lg transition-all duration-200 group border border-gray-700/50 hover:border-gray-600"
                         >
                             <X className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
                         </button>
@@ -206,6 +309,41 @@ const ConnectWallet = ({ onClose }) => {
                                     Start playing provably fair Rock Paper Scissors
                                 </motion.p>
                             </div>
+
+                            {/* Network Warning */}
+                            <AnimatePresence>
+                                {showNetworkWarning && (
+                                    <motion.div
+                                        initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                                        animate={{ opacity: 1, height: 'auto', marginBottom: 24 }}
+                                        exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                                        className="overflow-hidden"
+                                    >
+                                        <div className="p-4 bg-yellow-900/30 border-2 border-yellow-500/50 rounded-xl">
+                                            <div className="flex items-start gap-3">
+                                                <AlertCircle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                                                <div className="flex-1">
+                                                    <h3 className="text-yellow-400 font-bold mb-1 flex items-center gap-2">
+                                                        Wrong Network
+                                                    </h3>
+                                                    <p className="text-yellow-200/80 text-sm mb-3">
+                                                        Switch to Base Sepolia to continue
+                                                    </p>
+                                                    <motion.button
+                                                        onClick={handleSwitchNetwork}
+                                                        whileHover={{ scale: 1.02 }}
+                                                        whileTap={{ scale: 0.98 }}
+                                                        className="w-full px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg font-bold transition-all duration-200 flex items-center justify-center gap-2"
+                                                    >
+                                                        <Network className="w-4 h-4" />
+                                                        Switch to Base Sepolia
+                                                    </motion.button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
 
                             {/* Wallet Options */}
                             <motion.div

@@ -2,19 +2,37 @@ import { useState, useEffect } from 'react'
 import { useAccount, useReadContract } from 'wagmi'
 import { formatEther } from 'viem'
 import { DollarSign, TrendingUp, Zap, RotateCcw } from 'lucide-react'
-import { MIN_BET, MAX_BET, CONTRACT_ADDRESS, ROCK_PAPER_SCISSORS_ABI } from '../config/contracts'
-
-const quickBets = [
-    { label: '0.001', value: '0.001' },
-    { label: '0.01', value: '0.01' },
-    { label: '0.05', value: '0.05' },
-    { label: '0.1', value: '0.1' },
-]
+import { CONTRACT_ADDRESS, ROCK_PAPER_SCISSORS_ABI } from '../config/contracts'
 
 const BetInput = ({ value, onChange, disabled }) => {
     const { address } = useAccount()
     const [error, setError] = useState('')
     const [lastBetFromChain, setLastBetFromChain] = useState(null)
+
+    // ✅ Read dynamic bet limits from contract
+    const { data: minBet } = useReadContract({
+        address: CONTRACT_ADDRESS,
+        abi: ROCK_PAPER_SCISSORS_ABI,
+        functionName: 'minBet',
+    })
+
+    const { data: maxBet } = useReadContract({
+        address: CONTRACT_ADDRESS,
+        abi: ROCK_PAPER_SCISSORS_ABI,
+        functionName: 'maxBet',
+    })
+
+    // Convert to ETH strings
+    const MIN_BET = minBet ? formatEther(minBet) : '0.0001'
+    const MAX_BET = maxBet ? formatEther(maxBet) : '100'
+
+    // Generate quick bet buttons dynamically
+    const quickBets = [
+        { label: 'Min', value: MIN_BET },
+        { label: '0.01', value: '0.01' },
+        { label: '0.1', value: '0.1' },
+        { label: '1.0', value: '1.0' },
+    ]
 
     // Get player's game IDs from contract
     const { data: gameIds } = useReadContract({
@@ -101,7 +119,7 @@ const BetInput = ({ value, onChange, disabled }) => {
             <div className="relative">
                 <input
                     type="number"
-                    step="0.001"
+                    step="0.0001"
                     min={MIN_BET}
                     max={MAX_BET}
                     value={value}

@@ -23,12 +23,15 @@ interface IEntropyV2 {
 
 /**
  * @title RockPaperScissors
- * @notice Provably fair Rock Paper Scissors game using Pyth Entropy V2 requestV2 API
+ * @notice Provably fair Rock Paper Scissors game using Pyth Entropy V2
+ * @dev Includes username system, welcome bonus, and dynamic bet limits
  */
 contract RockPaperScissors is IEntropyConsumer, Ownable, ReentrancyGuard {
+    // ============ Enums ============
     enum Choice { NONE, ROCK, PAPER, SCISSORS }
     enum GameResult { PENDING, WIN, LOSE, DRAW }
 
+    // ============ Structs ============
     struct Game {
         address player;
         uint256 betAmount;
@@ -42,29 +45,44 @@ contract RockPaperScissors is IEntropyConsumer, Ownable, ReentrancyGuard {
         bool revealed;
     }
 
+    // ============ State Variables ============
     IEntropyV2 public entropy;
     address public entropyProvider;
     uint32 public entropyGasLimit; // 0 => provider default if supported
 
-    uint256 public constant HOUSE_EDGE = 5; // percent
-    uint256 public constant MIN_BET = 0.001 ether;
-    uint256 public constant MAX_BET = 1 ether;
+    // Dynamic bet limits (Phase 1 feature)
+    uint256 public minBet = 0.0001 ether;
+    uint256 public maxBet = 100 ether;
 
+    uint256 public constant HOUSE_EDGE = 5; // percent
+    bool public drawsRefund;
+
+    // Game tracking
     uint256 public gameCounter;
     uint256 public totalGamesPlayed;
     uint256 public totalWins;
     uint256 public totalLosses;
     uint256 public totalDraws;
+    uint256 public totalVolume;
+    uint256 public totalPlayersCount;
 
-    bool public drawsRefund;
+    // Username system (Phase 1 feature)
+    mapping(address => string) public usernames;
+    mapping(bytes32 => address) private usernameHashes;
 
+    // Welcome bonus system (Phase 1 feature)
+    uint256 public welcomeBonusAmount = 0.001 ether;
+    mapping(address => bool) public hasClaimedWelcomeBonus;
+    bool public welcomeBonusEnabled = true;
+
+    // Game mappings
     mapping(uint256 => Game) public games;
     mapping(uint64 => uint256) public entropySequenceToGameId;
     mapping(address => uint256[]) public playerGames;
-
-    // Pull-payouts to guarantee non-reverting callback
     mapping(address => uint256) public pendingPayouts;
+    mapping(address => bool) private hasPlayed;
 
+    // ============ Events ============
     event GameCreated(uint256 indexed gameId, address indexed player, uint256 betAmount, Choice playerChoice, uint64 entropySequenceNumber);
     event GameRevealed(uint256 indexed gameId, address indexed player, Choice playerChoice, Choice houseChoice, GameResult result, uint256 payout);
     event HouseFunded(address indexed funder, uint256 amount);
@@ -72,25 +90,100 @@ contract RockPaperScissors is IEntropyConsumer, Ownable, ReentrancyGuard {
     event ProviderUpdated(address indexed provider);
     event GasLimitUpdated(uint32 gasLimit);
     event PayoutAccrued(address indexed player, uint256 amount);
+    event UsernameSet(address indexed user, string username);
+    event WelcomeBonusClaimed(address indexed user, uint256 amount);
+    event BetLimitsUpdated(uint256 newMinBet, uint256 newMaxBet);
+    event WelcomeBonusUpdated(uint256 newAmount, bool enabled);
 
+    // ============ Errors ============
     error InvalidBetAmount();
     error InvalidChoice();
     error InsufficientHouseBalance();
     error TransferFailed();
+    error UsernameTooShort();
+    error UsernameTooLong();
+    error UsernameAlreadyTaken();
+    error WelcomeBonusAlreadyClaimed();
+    error WelcomeBonusDisabled();
+    error InsufficientBonusFunds();
+    error InvalidBetLimits();
 
-    constructor(address entropyAddress, address _entropyProvider, bool _drawsRefund) Ownable(msg.sender) {
+    // ============ Constructor ============
+    constructor(
+        address entropyAddress,
+        address _entropyProvider,
+        bool _drawsRefund
+    ) Ownable(msg.sender) {
         entropy = IEntropyV2(entropyAddress);
         entropyProvider = _entropyProvider != address(0) ? _entropyProvider : entropy.getDefaultProvider();
         entropyGasLimit = 0; // use provider default unless owner updates
         drawsRefund = _drawsRefund;
     }
 
-    // IEntropyConsumer requirement
+    // ============ IEntropyConsumer Implementation ============
     function getEntropy() internal view override returns (address) {
         return address(entropy);
     }
 
-    // Admin
+    // ============ Username Functions (Phase 1) ============
+    function setUsername(string calldata _username) external {
+        uint256 len = bytes(_username).length;
+        if (len < 3) revert UsernameTooShort();
+        if (len > 15) revert UsernameTooLong();
+
+        bytes32 hash = keccak256(bytes(_username));
+        address existingOwner = usernameHashes[hash];
+
+        // Allow updating own username
+        if (existingOwner != address(0) && existingOwner != msg.sender) {
+            revert UsernameAlreadyTaken();
+        }
+
+        // Clear old username hash if updating
+        if (bytes(usernames[msg.sender]).length > 0) {
+            bytes32 oldHash = keccak256(bytes(usernames[msg.sender]));
+            delete usernameHashes[oldHash];
+        }
+
+        usernameHashes[hash] = msg.sender;
+        usernames[msg.sender] = _username;
+
+        emit UsernameSet(msg.sender, _username);
+    }
+
+    function isUsernameTaken(string calldata _username) external view returns (bool) {
+        bytes32 hash = keccak256(bytes(_username));
+        return usernameHashes[hash] != address(0);
+    }
+
+    // ============ Welcome Bonus Functions (Phase 1) ============
+    function claimWelcomeBonus() external nonReentrant {
+        if (!welcomeBonusEnabled) revert WelcomeBonusDisabled();
+        if (hasClaimedWelcomeBonus[msg.sender]) revert WelcomeBonusAlreadyClaimed();
+        if (address(this).balance < welcomeBonusAmount) revert InsufficientBonusFunds();
+
+        hasClaimedWelcomeBonus[msg.sender] = true;
+
+        (bool success, ) = msg.sender.call{value: welcomeBonusAmount}("");
+        if (!success) revert TransferFailed();
+
+        emit WelcomeBonusClaimed(msg.sender, welcomeBonusAmount);
+    }
+
+    // ============ Owner Functions ============
+    function setBetLimits(uint256 _minBet, uint256 _maxBet) external onlyOwner {
+        if (_minBet == 0 || _minBet >= _maxBet) revert InvalidBetLimits();
+        minBet = _minBet;
+        maxBet = _maxBet;
+        emit BetLimitsUpdated(_minBet, _maxBet);
+    }
+
+    function setWelcomeBonus(uint256 _amount, bool _enabled) external onlyOwner {
+        welcomeBonusAmount = _amount;
+        welcomeBonusEnabled = _enabled;
+        emit WelcomeBonusUpdated(_amount, _enabled);
+    }
+
     function setEntropyProvider(address _provider) external onlyOwner {
         require(_provider != address(0), "provider=0");
         entropyProvider = _provider;
@@ -98,11 +191,15 @@ contract RockPaperScissors is IEntropyConsumer, Ownable, ReentrancyGuard {
     }
 
     function setEntropyGasLimit(uint32 _gasLimit) external onlyOwner {
-        entropyGasLimit = _gasLimit; // 0 means "use default" if supported by provider
+        entropyGasLimit = _gasLimit;
         emit GasLimitUpdated(_gasLimit);
     }
 
-    // Core game
+    function setDrawsRefund(bool _drawsRefund) external onlyOwner {
+        drawsRefund = _drawsRefund;
+    }
+
+    // ============ Core Game Function ============
     function playGame(Choice _choice, bytes32 _userRandomness)
     external
     payable
@@ -111,7 +208,7 @@ contract RockPaperScissors is IEntropyConsumer, Ownable, ReentrancyGuard {
     {
         if (_choice == Choice.NONE || uint8(_choice) > 3) revert InvalidChoice();
 
-        // Query latest on-chain fee for current provider/gasLimit (must match the requestV2 variant)
+        // Query latest on-chain fee for current provider/gasLimit
         uint256 entropyFee = uint256(entropy.getFeeV2(entropyProvider, entropyGasLimit));
 
         // Ensure fee is covered to avoid underflow
@@ -119,18 +216,21 @@ contract RockPaperScissors is IEntropyConsumer, Ownable, ReentrancyGuard {
 
         // Value must cover bet + provider fee; bet is the remainder staying in this contract
         uint256 betAmount = msg.value - entropyFee;
-        if (betAmount < MIN_BET || betAmount > MAX_BET) revert InvalidBetAmount();
+        if (betAmount < minBet || betAmount > maxBet) revert InvalidBetAmount();
 
         // Ensure house can cover worst-case payout after forwarding the fee
-        uint256 maxPayout = betAmount + ((betAmount * (100 - HOUSE_EDGE)) / 100); // bet + 95% profit
-        // Available after fee is forwarded
+        uint256 maxPayout = betAmount + ((betAmount * (100 - HOUSE_EDGE)) / 100);
         uint256 availableAfterFee = address(this).balance - entropyFee;
         if (availableAfterFee < maxPayout) revert InsufficientHouseBalance();
 
         gameId = ++gameCounter;
 
-        // Send the exact fee with the randomness request; remainder (bet) stays for payout
-        uint64 sequenceNumber = entropy.requestV2{value: entropyFee}(entropyProvider, _userRandomness, entropyGasLimit);
+        // Send the exact fee with the randomness request
+        uint64 sequenceNumber = entropy.requestV2{value: entropyFee}(
+            entropyProvider,
+            _userRandomness,
+            entropyGasLimit
+        );
 
         games[gameId] = Game({
             player: msg.sender,
@@ -148,11 +248,17 @@ contract RockPaperScissors is IEntropyConsumer, Ownable, ReentrancyGuard {
         entropySequenceToGameId[sequenceNumber] = gameId;
         playerGames[msg.sender].push(gameId);
 
+        // Track new players
+        if (!hasPlayed[msg.sender]) {
+            hasPlayed[msg.sender] = true;
+            totalPlayersCount++;
+        }
+
         emit GameCreated(gameId, msg.sender, betAmount, _choice, sequenceNumber);
         return gameId;
     }
 
-    // Entropy callback: MUST NEVER REVERT
+    // ============ Entropy Callback (MUST NEVER REVERT) ============
     function entropyCallback(
         uint64 sequenceNumber,
         address, // provider
@@ -178,25 +284,26 @@ contract RockPaperScissors is IEntropyConsumer, Ownable, ReentrancyGuard {
         uint256 payout = calculatePayout(game.betAmount, game.result);
         game.payout = payout;
 
-        // Stats
+        // Update stats
         totalGamesPlayed++;
+        totalVolume += game.betAmount;
         if (game.result == GameResult.WIN) totalWins++;
         else if (game.result == GameResult.LOSE) totalLosses++;
         else totalDraws++;
 
-        // Non-reverting payout path: try direct send, otherwise accrue for pull withdrawal
+        // Non-reverting payout path
         if (payout > 0) {
             (bool success, ) = game.player.call{value: payout}("");
             if (!success) {
                 pendingPayouts[game.player] += payout;
                 emit PayoutAccrued(game.player, payout);
-                // Do not revert
             }
         }
 
         emit GameRevealed(gameId, game.player, game.playerChoice, game.houseChoice, game.result, payout);
     }
 
+    // ============ Internal Helper Functions ============
     function determineWinner(Choice player, Choice house) internal pure returns (GameResult) {
         if (player == house) return GameResult.DRAW;
         if (
@@ -218,7 +325,7 @@ contract RockPaperScissors is IEntropyConsumer, Ownable, ReentrancyGuard {
         return 0;
     }
 
-    // Views / helpers for frontend/tests
+    // ============ View Functions ============
     function getGame(uint256 _gameId) external view returns (Game memory) {
         return games[_gameId];
     }
@@ -227,7 +334,13 @@ contract RockPaperScissors is IEntropyConsumer, Ownable, ReentrancyGuard {
         return playerGames[_player];
     }
 
-    function getStats() external view returns (uint256 totalGames, uint256 wins, uint256 losses, uint256 draws, uint256 houseBalance) {
+    function getStats() external view returns (
+        uint256 totalGames,
+        uint256 wins,
+        uint256 losses,
+        uint256 draws,
+        uint256 houseBalance
+    ) {
         return (totalGamesPlayed, totalWins, totalLosses, totalDraws, address(this).balance);
     }
 
@@ -235,7 +348,7 @@ contract RockPaperScissors is IEntropyConsumer, Ownable, ReentrancyGuard {
         return uint256(entropy.getFeeV2(entropyProvider, entropyGasLimit));
     }
 
-    // Treasury
+    // ============ Treasury Functions ============
     function fundHouse() external payable {
         emit HouseFunded(msg.sender, msg.value);
     }
@@ -247,7 +360,6 @@ contract RockPaperScissors is IEntropyConsumer, Ownable, ReentrancyGuard {
         emit HouseWithdrawn(owner(), _amount);
     }
 
-    // Player-initiated pull withdrawal for accrued payouts
     function withdrawPayout() external nonReentrant {
         uint256 amount = pendingPayouts[msg.sender];
         if (amount == 0) return;

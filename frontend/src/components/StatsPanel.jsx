@@ -1,31 +1,51 @@
 import { useReadContract, useAccount } from 'wagmi'
 import { formatEther } from 'viem'
-import { BarChart3, TrendingUp, Users, Coins, Trophy, Flame, Target, Zap } from 'lucide-react'
+import { BarChart3, TrendingUp, Users, Coins, Trophy, Flame, Target, Zap, User } from 'lucide-react'
 import { CONTRACT_ADDRESS, ROCK_PAPER_SCISSORS_ABI } from '../config/contracts'
 import { motion } from 'framer-motion'
 import { useMemo, useEffect, useState } from 'react'
 
-const StatsPanel = () => {
+const StatsPanel = ({ triggerRefresh = 0 }) => {  // ✅ ADD THIS PROP
     const { address } = useAccount()
     const [animatedEarnings, setAnimatedEarnings] = useState(0)
     const [games, setGames] = useState([])
     const [isLoadingGames, setIsLoadingGames] = useState(false)
 
-    // Global stats
-    const { data: stats, isLoading: statsLoading } = useReadContract({
+    // ✅ Username from contract
+    const { data: username } = useReadContract({
+        address: CONTRACT_ADDRESS,
+        abi: ROCK_PAPER_SCISSORS_ABI,
+        functionName: 'usernames',
+        args: [address],
+        enabled: !!address,
+    })
+
+    // ✅ Global stats with REFETCH enabled
+    const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useReadContract({
         address: CONTRACT_ADDRESS,
         abi: ROCK_PAPER_SCISSORS_ABI,
         functionName: 'getStats',
     })
 
-    // Player game IDs
-    const { data: gameIds } = useReadContract({
+    // ✅ Player game IDs with REFETCH enabled
+    const { data: gameIds, refetch: refetchGameIds } = useReadContract({
         address: CONTRACT_ADDRESS,
         abi: ROCK_PAPER_SCISSORS_ABI,
         functionName: 'getPlayerGames',
         args: [address],
         enabled: !!address,
     })
+
+    // ✅ AUTO-REFRESH when triggerRefresh changes
+    useEffect(() => {
+        if (triggerRefresh > 0) {
+            console.log('🔄 Refreshing stats panel...')
+            refetchStats()
+            if (address) {
+                refetchGameIds()
+            }
+        }
+    }, [triggerRefresh, refetchStats, refetchGameIds, address])
 
     // Fetch individual game details
     useEffect(() => {
@@ -68,7 +88,6 @@ const StatsPanel = () => {
     }, [gameIds])
 
     // Calculate player-specific stats
-    // Calculate player-specific stats
     const playerStats = useMemo(() => {
         if (!games || games.length === 0) {
             return {
@@ -96,60 +115,33 @@ const StatsPanel = () => {
         let tempStreak = 0
         const choiceCount = { 1: 0, 2: 0, 3: 0 }
 
-        // Create array with gameId for proper sorting
         const gamesWithIds = games.map((game, index) => ({
             ...game,
             arrayIndex: index,
         }))
 
-        // Sort by gameId (highest = most recent)
         const sortedGames = [...gamesWithIds].sort((a, b) => {
             const idA = Number(a.gameId || a.arrayIndex)
             const idB = Number(b.gameId || b.arrayIndex)
-            return idB - idA // Descending order
+            return idB - idA
         })
 
-        console.log('🎮 Sorted Games for Streak Calculation:')
-        sortedGames.slice(0, 5).forEach((game, i) => {
-            console.log(`  ${i}: GameID=${game.gameId?.toString()}, Result=${game.result} (1=WIN, 2=LOSE, 3=DRAW)`)
-        })
-
-        // Calculate current streak from most recent games
         for (let i = 0; i < sortedGames.length; i++) {
             const game = sortedGames[i]
-
-            // Skip pending games
-            if (!game.result || game.result === 0) {
-                console.log(`  ⏳ Skipping pending game at index ${i}`)
-                continue
-            }
-
-            // If it's a win, increment current streak
+            if (!game.result || game.result === 0) continue
             if (game.result === 1) {
                 currentStreak++
-                console.log(`  ✅ Win at index ${i}, streak now: ${currentStreak}`)
             } else {
-                // Stop at first loss or draw
-                console.log(`  ❌ Non-win at index ${i} (result=${game.result}), stopping streak`)
                 break
             }
         }
 
-        console.log(`🔥 Final Current Streak: ${currentStreak}`)
-
-        // Process all games for other stats
         sortedGames.forEach((game) => {
-            // Skip pending games
             if (!game.result || game.result === 0) return
-
             totalBet += game.betAmount
-
-            // Count choices
             if (game.playerChoice) {
                 choiceCount[game.playerChoice] = (choiceCount[game.playerChoice] || 0) + 1
             }
-
-            // GameResult: 0=PENDING, 1=WIN, 2=LOSE, 3=DRAW
             if (game.result === 1) {
                 wins++
                 totalPayout += game.payout
@@ -188,8 +180,6 @@ const StatsPanel = () => {
         }
     }, [games])
 
-
-    // Get streak intensity styling
     const getStreakIntensity = (streak) => {
         if (streak === 0) {
             return {
@@ -236,7 +226,6 @@ const StatsPanel = () => {
 
     const streakStyle = getStreakIntensity(playerStats.currentStreak)
 
-    // Animate earnings counter
     useEffect(() => {
         const target = parseFloat(formatEther(playerStats.netProfit))
         const duration = 2000
@@ -258,7 +247,6 @@ const StatsPanel = () => {
         return () => clearInterval(interval)
     }, [playerStats.netProfit])
 
-    // Achievement definitions
     const achievements = [
         {
             id: 'first_win',
@@ -349,8 +337,26 @@ const StatsPanel = () => {
 
     return (
         <div className="space-y-6">
-            {/* Global Stats */}
+            {/* Username Display */}
+            {username && (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-gradient-to-r from-purple-900/30 to-pink-900/30 rounded-2xl p-6 border border-purple-500/30"
+                >
+                    <div className="flex items-center gap-3">
+                        <User className="w-6 h-6 text-purple-400" />
+                        <div>
+                            <div className="text-sm text-purple-300 mb-1">Player</div>
+                            <div className="text-2xl font-bold text-white">{username}</div>
+                        </div>
+                    </div>
+                </motion.div>
+            )}
+
+            {/* ✅ Global Stats with Animation on Update */}
             <motion.div
+                key={triggerRefresh} // ✅ Re-animate on refresh
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-gray-800/20 rounded-2xl p-6 border border-gray-700/50"
@@ -362,7 +368,7 @@ const StatsPanel = () => {
                 <div className="grid grid-cols-2 gap-4">
                     {statsItems.map((item, index) => (
                         <motion.div
-                            key={index}
+                            key={`${item.label}-${triggerRefresh}`} // ✅ Re-animate on refresh
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: index * 0.1 }}
@@ -372,7 +378,15 @@ const StatsPanel = () => {
                                 <item.icon className={`w-4 h-4 ${item.color}`} />
                                 <span className="text-gray-400 text-sm">{item.label}</span>
                             </div>
-                            <div className="text-2xl font-bold text-white">{item.value}</div>
+                            <motion.div
+                                key={`${item.value}-${triggerRefresh}`}
+                                initial={{ scale: 1.2, color: '#10b981' }}
+                                animate={{ scale: 1, color: '#ffffff' }}
+                                transition={{ duration: 0.5 }}
+                                className="text-2xl font-bold text-white"
+                            >
+                                {item.value}
+                            </motion.div>
                         </motion.div>
                     ))}
                 </div>
@@ -395,12 +409,12 @@ const StatsPanel = () => {
                         <motion.div
                             animate={{ scale: [1, 1.05, 1] }}
                             transition={{ duration: 2, repeat: Infinity }}
-                            className={`text-4xl font-black ${
+                            className={`text-4xl font-black px-2 ${
                                 animatedEarnings >= 0 ? 'text-green-400' : 'text-red-400'
                             }`}
                         >
                             {animatedEarnings >= 0 ? '+' : ''}
-                            {animatedEarnings.toFixed(5)} ETH
+                            {animatedEarnings.toFixed(6)} ETH
                         </motion.div>
                         <div className="text-sm text-gray-400 mt-2">
                             Wagered: {formatEther(playerStats.totalBet)} ETH • Payout:{' '}
@@ -420,7 +434,6 @@ const StatsPanel = () => {
                             Performance
                         </h3>
 
-                        {/* Win Rate Circle */}
                         <div className="flex items-center justify-between mb-6">
                             <div className="flex-1">
                                 <div className="text-4xl font-black text-white mb-1">
@@ -434,9 +447,7 @@ const StatsPanel = () => {
                                 </div>
                             </div>
 
-                            {/* Win Streak */}
                             <div className="flex flex-col items-end gap-3">
-                                {/* Current Streak - Dynamic Intensity */}
                                 <motion.div
                                     className={`${streakStyle.bgColor} border ${streakStyle.borderColor} rounded-xl px-4 py-3 ${streakStyle.glowColor} ${streakStyle.animation}`}
                                     animate={playerStats.currentStreak >= 5 ? {
@@ -461,7 +472,6 @@ const StatsPanel = () => {
                                     </div>
                                 </motion.div>
 
-                                {/* Best Streak */}
                                 <div className="bg-purple-500/20 border border-purple-500/50 rounded-xl px-4 py-3">
                                     <div className="flex items-center gap-2 mb-1">
                                         <Trophy className="w-4 h-4 text-purple-400" />

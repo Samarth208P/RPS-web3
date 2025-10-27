@@ -114,22 +114,32 @@ const GameBoard = ({ onGameComplete, onBattleStart, onBattleEnd }) => {
                     logs: receipt.logs,
                 })
 
+                console.log('📜 Parsed logs:', logs)
+
                 const gameCreatedEvent = logs.find((log) => log.eventName === 'GameCreated')
                 const gameRevealedEvent = logs.find((log) => log.eventName === 'GameRevealed')
 
                 if (gameCreatedEvent) {
                     const gameId = gameCreatedEvent.args.gameId
                     setCurrentGameId(gameId)
+                    console.log('🎮 Game created with ID:', gameId)
 
                     if (gameRevealedEvent) {
+                        console.log('🎲 Game revealed immediately:', gameRevealedEvent.args)
                         setBattleHouseChoice(Number(gameRevealedEvent.args.houseChoice))
 
                         setTimeout(() => {
                             handleGameResult(gameRevealedEvent, gameId)
                         }, 3000)
                     } else {
+                        console.log('⏳ Waiting for reveal...')
                         pollGameResult(gameId)
                     }
+                } else {
+                    console.error('❌ No GameCreated event found')
+                    setShowBattleAnimation(false)
+                    setIsPlaying(false)
+                    if (onBattleEnd) onBattleEnd()
                 }
             } catch (error) {
                 console.error('Error parsing logs:', error)
@@ -144,13 +154,15 @@ const GameBoard = ({ onGameComplete, onBattleStart, onBattleEnd }) => {
         const result = {
             hash: receipt.transactionHash,
             gameId: Number(gameId),
-            playerChoice: Number(gameRevealedEvent.playerChoice),
-            houseChoice: Number(gameRevealedEvent.houseChoice),
-            result: Number(gameRevealedEvent.result),
+            playerChoice: Number(gameRevealedEvent.args.playerChoice), // ✅ Fixed: Added .args
+            houseChoice: Number(gameRevealedEvent.args.houseChoice),
+            result: Number(gameRevealedEvent.args.result),
             betAmount: parseEther(betAmount),
-            payout: gameRevealedEvent.payout || 0n,
-            randomNumber: gameRevealedEvent.randomNumber,
+            payout: gameRevealedEvent.args.payout || 0n,
+            randomNumber: gameRevealedEvent.args.randomNumber,
         }
+
+        console.log('✅ Game result:', result)
 
         setShowBattleAnimation(false)
         setIsPlaying(false)
@@ -178,7 +190,10 @@ const GameBoard = ({ onGameComplete, onBattleStart, onBattleEnd }) => {
                     args: [gameId],
                 })
 
+                console.log(`🔄 Poll attempt ${attempts + 1}/${maxAttempts}:`, game)
+
                 if (game.revealed && game.result !== 0) {
+                    console.log('✅ Game revealed!')
                     setBattleHouseChoice(Number(game.houseChoice))
 
                     const result = {
@@ -206,6 +221,7 @@ const GameBoard = ({ onGameComplete, onBattleStart, onBattleEnd }) => {
                     attempts++
                     setTimeout(poll, 2000)
                 } else {
+                    console.error('❌ Timeout waiting for reveal')
                     setShowBattleAnimation(false)
                     setIsPlaying(false)
 
