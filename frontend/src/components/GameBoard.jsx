@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi'
-import { parseEther } from 'viem'
+import { parseEther, parseEventLogs, formatEther } from 'viem'
 import { toast } from 'react-hot-toast'
 import { CONTRACT_ADDRESS, ROCK_PAPER_SCISSORS_ABI, CHOICES } from '../config/contracts'
 import ChoiceSelector from './ChoiceSelector'
-import GameResult from './GameResult'
 import BetInput from './BetInput'
 import { Loader2 } from 'lucide-react'
 
@@ -26,13 +25,15 @@ const GameBoard = ({ onGameComplete }) => {
         writeContract: playGame,
         data: playHash,
         isPending: isPlayPending,
-        error: playError
+        error: playError,
+        reset: resetWriteContract
     } = useWriteContract()
 
-    // Wait for transaction
+    // Wait for transaction receipt
     const {
         isLoading: isConfirming,
         isSuccess: isPlaySuccess,
+        data: receipt,
         error: txError
     } = useWaitForTransactionReceipt({
         hash: playHash,
@@ -57,7 +58,13 @@ const GameBoard = ({ onGameComplete }) => {
             // Calculate total value (bet + entropy fee)
             const totalValue = parseEther(betAmount) + BigInt(entropyFee || 0)
 
-            // Call playGame - this will now handle everything in one transaction
+            console.log('🎲 Starting game with:', {
+                choice: selectedChoice,
+                betAmount,
+                totalValue: formatEther(totalValue)
+            })
+
+            // Call playGame
             playGame({
                 address: CONTRACT_ADDRESS,
                 abi: ROCK_PAPER_SCISSORS_ABI,
@@ -74,34 +81,100 @@ const GameBoard = ({ onGameComplete }) => {
         }
     }
 
-    // Handle success
+    // Handle transaction success and parse logs
     useEffect(() => {
-        if (isPlaySuccess) {
-            toast.success('Game completed! Check the result below.', { id: 'game' })
+        if (isPlaySuccess && receipt) {
+            console.log('✅ Transaction confirmed!', receipt)
+
+            // Dismiss the loading toast WITHOUT showing success message
+            toast.dismiss('game')
+
             setIsPlaying(false)
 
-            // Trigger refresh
-            if (onGameComplete) {
-                setTimeout(() => {
-                    onGameComplete()
-                }, 2000)
-            }
+            try {
+                // Parse event logs from the receipt
+                const logs = parseEventLogs({
+                    abi: ROCK_PAPER_SCISSORS_ABI,
+                    logs: receipt.logs,
+                })
 
-            // Reset for next game
-            setTimeout(() => {
-                setSelectedChoice(null)
-            }, 3000)
+                console.log('📋 Parsed logs:', logs)
+
+                // Find the game result event
+                const gameEvent = logs.find(log =>
+                    log.eventName === 'GamePlayed' ||
+                    log.eventName === 'GameResult' ||
+                    log.eventName === 'GameCompleted'
+                )
+
+                if (gameEvent && gameEvent.args) {
+                    const result = {
+                        hash: receipt.transactionHash,
+                        playerChoice: Number(gameEvent.args.playerChoice || selectedChoice),
+                        houseChoice: Number(gameEvent.args.houseChoice),
+                        result: Number(gameEvent.args.result),
+                        betAmount: gameEvent.args.betAmount || parseEther(betAmount),
+                        payout: gameEvent.args.payout || 0n,
+                        randomNumber: gameEvent.args.randomNumber || receipt.transactionHash,
+                    }
+
+                    console.log('🎯 Game result:', result)
+
+                    // Pass result to parent immediately
+                    if (onGameComplete) {
+                        onGameComplete(result)
+                    }
+                } else {
+                    console.warn('⚠️ No game event found in logs, falling back')
+
+                    // Fallback result
+                    const fallbackResult = {
+                        hash: receipt.transactionHash,
+                        playerChoice: selectedChoice,
+                        houseChoice: 0,
+                        result: 0,
+                        betAmount: parseEther(betAmount),
+                        payout: 0n,
+                        randomNumber: receipt.transactionHash,
+                    }
+
+                    if (onGameComplete) {
+                        onGameComplete(fallbackResult)
+                    }
+                }
+            } catch (error) {
+                console.error('Error parsing logs:', error)
+
+                // Still trigger with fallback data
+                if (onGameComplete) {
+                    onGameComplete({
+                        hash: receipt.transactionHash,
+                        playerChoice: selectedChoice,
+                        houseChoice: 0,
+                        result: 0,
+                        betAmount: parseEther(betAmount),
+                        payout: 0n,
+                        randomNumber: receipt.transactionHash,
+                    })
+                }
+            }
         }
-    }, [isPlaySuccess])
+    }, [isPlaySuccess, receipt, selectedChoice, betAmount, onGameComplete])
 
     // Handle errors
     useEffect(() => {
         if (playError) {
-            toast.error(playError.shortMessage || 'Transaction failed', { id: 'game' })
+            toast.error(playError.shortMessage || 'Transaction failed', {
+                id: 'game',
+                duration: 4000
+            })
             setIsPlaying(false)
         }
         if (txError) {
-            toast.error('Transaction reverted', { id: 'game' })
+            toast.error('Transaction reverted', {
+                id: 'game',
+                duration: 4000
+            })
             setIsPlaying(false)
         }
     }, [playError, txError])
@@ -139,9 +212,11 @@ const GameBoard = ({ onGameComplete }) => {
                 >
                     {isLoading ? (
                         <span className="flex items-center space-x-2">
-              <Loader2 className="w-6 h-6 animate-spin" />
-              <span>Processing...</span>
-            </span>
+                            <Loader2 className="w-6 h-6 animate-spin" />
+                            <span>
+                                {isPlayPending ? 'Confirming...' : isConfirming ? 'Processing...' : 'Loading...'}
+                            </span>
+                        </span>
                     ) : (
                         'Play Game'
                     )}
@@ -157,14 +232,6 @@ const GameBoard = ({ onGameComplete }) => {
                     </div>
                 )}
             </div>
-
-            {isPlaySuccess && (
-                <div className="mt-6 p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-center">
-                    <p className="text-green-400 font-semibold">
-                        ✓ Game completed! Check your game history below.
-                    </p>
-                </div>
-            )}
         </div>
     )
 }

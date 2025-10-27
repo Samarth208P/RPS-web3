@@ -12,10 +12,7 @@
 ### ⚡ **WEB3 EDITION** ⚡
 ### **PROVABLY FAIR • BLOCKCHAIN POWERED • PYTH ENTROPY**
 
-```
-    ✊ ROCK           ✋ PAPER          ✌️ SCISSORS
-     [ ]              [ ]               [ ]
-```
+
 
 ![License](https://img.shields.io/badge/license-MIT-00ff41?style=for-the-badge&logo=opensourceinitiative&logoColor=white)
 ![Solidity](https://img.shields.io/badge/Solidity-0.8.28-ff6b9d?style=for-the-badge&logo=solidity&logoColor=white)
@@ -447,101 +444,6 @@ cast send <CONTRACT_ADDRESS> "fundHouse()" \
 
 ---
 
-## 🎨 **UI STYLING & ANIMATIONS**
-
-### **Glassmorphism Card**
-
-```css
-/* Apply to containers */
-.glass-card {
-  @apply rounded-2xl border border-white/10 bg-white/5 
-         backdrop-blur-xl shadow-xl p-6;
-}
-```
-
-### **Gradient Title**
-
-```css
-/* Apply to h1 headers */
-.gradient-title {
-  @apply text-3xl md:text-5xl font-extrabold 
-         bg-gradient-to-r from-indigo-400 via-sky-400 to-emerald-400 
-         bg-clip-text text-transparent tracking-tight;
-}
-```
-
-### **Action Button**
-
-```css
-/* Apply to primary buttons */
-.action-button {
-  @apply px-5 py-2.5 rounded-lg font-medium 
-         bg-indigo-500 hover:bg-indigo-400 
-         active:scale-[0.98] text-white 
-         shadow-md shadow-indigo-500/25 
-         transition-all duration-200;
-}
-```
-
-### **Framer Motion Animations**
-
-```javascript
-// Page mount animation
-const pageVariants = {
-  hidden: { opacity: 0, y: 12 },
-  show: { 
-    opacity: 1, 
-    y: 0, 
-    transition: { 
-      duration: 0.4, 
-      ease: [0.22, 1, 0.36, 1] 
-    }
-  }
-};
-
-// Staggered list animation
-const listVariants = {
-  parent: {
-    staggerChildren: 0.06,
-    delayChildren: 0.08
-  },
-  child: {
-    hidden: { opacity: 0, y: 8 },
-    show: { 
-      opacity: 1, 
-      y: 0, 
-      transition: { duration: 0.25 }
-    }
-  }
-};
-
-// Hover micro-interaction
-const hoverVariants = {
-  rest: { y: 0 },
-  hover: { 
-    y: -2, 
-    transition: { 
-      type: "spring", 
-      stiffness: 400, 
-      damping: 24 
-    }
-  }
-};
-```
-
-### **GSAP Hero Timeline**
-
-```javascript
-// Hero section entrance
-gsap.timeline()
-  .from(".hero-title", { opacity: 0, y: 10, duration: 0.4 })
-  .from(".hero-subtitle", { opacity: 0, y: 8, duration: 0.35 }, "-=0.2")
-  .from(".hero-cta", { opacity: 0, y: 6, duration: 0.3 }, "-=0.2");
-```
-
-> **💡 ANIMATION TIP:** Keep animations between 200-450ms and respect `prefers-reduced-motion`!
-
----
 
 ## 🧹 **MAINTENANCE**
 
@@ -632,7 +534,7 @@ Special thanks to the amazing teams behind:
 
 <div align="center">
 
-**[🐛 Report Issues](https://github.com/yourusername/rock-paper-scissors-web3/issues)** • **[💬 Discussions](https://github.com/yourusername/rock-paper-scissors-web3/discussions)** • **[🐦 Twitter](https://twitter.com/yourhandle)**
+**[🐛 Report Issues](https://github.com/Samarth208P/RPS-web3/issues)** • **[💬 Discussions](https://github.com/Samarth208P/RPS-web3/discussions)** • **[🐦 Twitter](https://x.com/SamPy4X)**
 
 </div>
 

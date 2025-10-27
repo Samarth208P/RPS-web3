@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import Confetti from 'react-confetti'
 import { useWindowSize } from 'react-use'
-import { Trophy, X, Minus, ExternalLink } from 'lucide-react'
+import { Trophy, X, Minus, ExternalLink, ArrowLeft } from 'lucide-react'
 import { formatEther } from 'viem'
 import { CHOICE_NAMES, RESULT_NAMES } from '../config/contracts'
 import { NETWORK_CONFIG } from '../config/wagmi'
@@ -14,9 +14,36 @@ const choiceEmojis = {
 
 const GameResult = ({ result, onPlayAgain }) => {
     const { width, height } = useWindowSize()
-    const isWin = result.result === 1
-    const isLose = result.result === 2
-    const isDraw = result.result === 3
+
+    // Safely extract and convert result values
+    const resultValue = Number(result?.result || 0)
+    const playerChoice = Number(result?.playerChoice || 1)
+    const houseChoice = Number(result?.houseChoice || 1)
+
+    // Check win/lose/draw - FIX: Properly detect the result type
+    const isWin = resultValue === 1
+    const isLose = resultValue === 2
+    const isDraw = resultValue === 3
+
+    // Safely format amounts
+    const formatAmount = (amount) => {
+        if (!amount) return '0.000000'
+        try {
+            if (typeof amount === 'bigint') {
+                return formatEther(amount)
+            }
+            if (typeof amount === 'string' || typeof amount === 'number') {
+                return formatEther(BigInt(amount))
+            }
+            return '0.000000'
+        } catch (error) {
+            console.error('Error formatting amount:', error)
+            return '0.000000'
+        }
+    }
+
+    const betAmount = formatAmount(result?.betAmount)
+    const payout = formatAmount(result?.payout)
 
     const getResultColor = () => {
         if (isWin) return 'from-green-500 to-emerald-600'
@@ -36,6 +63,15 @@ const GameResult = ({ result, onPlayAgain }) => {
         return "It's a Draw! 🤝"
     }
 
+    // Get result text for display
+    const getResultText = () => {
+        if (resultValue === 0) return 'Pending'
+        if (resultValue === 1) return 'Win'
+        if (resultValue === 2) return 'Loss'
+        if (resultValue === 3) return 'Draw'
+        return 'Unknown'
+    }
+
     return (
         <>
             {isWin && <Confetti width={width} height={height} recycle={false} numberOfPieces={500} />}
@@ -43,8 +79,18 @@ const GameResult = ({ result, onPlayAgain }) => {
             <motion.div
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                className="text-center py-8"
+                transition={{ duration: 0.3 }}
+                className="text-center py-8 px-4 relative"
             >
+                {/* Close/Back Button */}
+                <button
+                    onClick={onPlayAgain}
+                    className="absolute top-4 left-4 p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors border border-white/10"
+                    title="Go Back"
+                >
+                    <ArrowLeft className="w-5 h-5 text-gray-400" />
+                </button>
+
                 {/* Result Icon */}
                 <motion.div
                     className={`inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br ${getResultColor()} mb-6`}
@@ -70,8 +116,8 @@ const GameResult = ({ result, onPlayAgain }) => {
                     {/* Player Choice */}
                     <div className={`p-4 rounded-xl ${isWin ? 'ring-2 ring-green-500' : ''} ${isLose ? 'opacity-50' : ''} bg-white/5`}>
                         <p className="text-xs text-gray-400 mb-2">You</p>
-                        <div className="text-5xl mb-2">{choiceEmojis[result.playerChoice]}</div>
-                        <p className="text-sm font-semibold">{CHOICE_NAMES[result.playerChoice]}</p>
+                        <div className="text-5xl mb-2">{choiceEmojis[playerChoice] || '❓'}</div>
+                        <p className="text-sm font-semibold">{CHOICE_NAMES[playerChoice] || 'Unknown'}</p>
                     </div>
 
                     {/* VS */}
@@ -82,8 +128,8 @@ const GameResult = ({ result, onPlayAgain }) => {
                     {/* House Choice */}
                     <div className={`p-4 rounded-xl ${isLose ? 'ring-2 ring-red-500' : ''} ${isWin ? 'opacity-50' : ''} bg-white/5`}>
                         <p className="text-xs text-gray-400 mb-2">House</p>
-                        <div className="text-5xl mb-2">{choiceEmojis[result.houseChoice]}</div>
-                        <p className="text-sm font-semibold">{CHOICE_NAMES[result.houseChoice]}</p>
+                        <div className="text-5xl mb-2">{choiceEmojis[houseChoice] || '❓'}</div>
+                        <p className="text-sm font-semibold">{CHOICE_NAMES[houseChoice] || 'Unknown'}</p>
                     </div>
                 </div>
 
@@ -92,58 +138,72 @@ const GameResult = ({ result, onPlayAgain }) => {
                     <div className="space-y-3">
                         <div className="flex justify-between items-center">
                             <span className="text-gray-400">Bet Amount</span>
-                            <span className="font-semibold">{formatEther(result.betAmount)} ETH</span>
+                            <span className="font-semibold">{betAmount} ETH</span>
                         </div>
                         <div className="flex justify-between items-center">
                             <span className="text-gray-400">Result</span>
                             <span className={`font-semibold ${
-                                isWin ? 'text-green-400' : isLose ? 'text-red-400' : 'text-yellow-400'
+                                isWin ? 'text-green-400' : isLose ? 'text-red-400' : isDraw ? 'text-yellow-400' : 'text-gray-400'
                             }`}>
-                {RESULT_NAMES[result.result]}
-              </span>
+                                {getResultText()}
+                            </span>
                         </div>
                         <div className="border-t border-white/10 pt-3 flex justify-between items-center">
                             <span className="text-gray-400">Payout</span>
                             <span className={`text-2xl font-bold ${
-                                isWin ? 'text-green-400' : isLose ? 'text-red-400' : 'text-yellow-400'
+                                isWin ? 'text-green-400' : isLose ? 'text-red-400' : isDraw ? 'text-yellow-400' : 'text-gray-400'
                             }`}>
-                {formatEther(result.payout)} ETH
-              </span>
+                                {payout} ETH
+                            </span>
                         </div>
                     </div>
                 </div>
 
-                {/* Random Number Proof */}
-                <details className="glass-dark rounded-xl p-4 mb-6 text-left max-w-md mx-auto cursor-pointer">
-                    <summary className="font-semibold text-sm text-gray-300 cursor-pointer">
-                        🔒 Provably Fair Proof
-                    </summary>
-                    <div className="mt-4 space-y-2 text-xs">
-                        <div>
-                            <p className="text-gray-400 mb-1">Random Number:</p>
-                            <code className="block bg-black/30 p-2 rounded break-all text-blue-400">
-                                {result.randomNumber}
-                            </code>
+                {/* Transaction Info */}
+                {result?.hash && (
+                    <details className="glass-dark rounded-xl p-4 mb-6 text-left max-w-md mx-auto cursor-pointer">
+                        <summary className="font-semibold text-sm text-gray-300 cursor-pointer hover:text-white transition-colors">
+                            🔒 Provably Fair Proof
+                        </summary>
+                        <div className="mt-4 space-y-2 text-xs">
+                            <div>
+                                <p className="text-gray-400 mb-1">Transaction Hash:</p>
+                                <code className="block bg-black/30 p-2 rounded break-all text-blue-400">
+                                    {result.hash}
+                                </code>
+                            </div>
+                            {result?.randomNumber && result.randomNumber !== result.hash && (
+                                <div>
+                                    <p className="text-gray-400 mb-1">Random Number:</p>
+                                    <code className="block bg-black/30 p-2 rounded break-all text-purple-400">
+                                        {typeof result.randomNumber === 'bigint'
+                                            ? result.randomNumber.toString()
+                                            : result.randomNumber}
+                                    </code>
+                                </div>
+                            )}
+                            <a
+                                href={`${NETWORK_CONFIG.blockExplorer}/tx/${result.hash}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center space-x-1 text-blue-400 hover:text-blue-300 transition-colors mt-2"
+                            >
+                                <span>View on Block Explorer</span>
+                                <ExternalLink className="w-3 h-3" />
+                            </a>
                         </div>
-                        <a
-                            href={`${NETWORK_CONFIG.blockExplorer}/tx/${result.randomNumber}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center space-x-1 text-blue-400 hover:text-blue-300 transition-colors"
-                        >
-                            <span>View on Explorer</span>
-                            <ExternalLink className="w-3 h-3" />
-                        </a>
-                    </div>
-                </details>
+                    </details>
+                )}
 
                 {/* Play Again Button */}
-                <button
+                <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={onPlayAgain}
                     className="btn-primary text-xl px-12 py-4"
                 >
                     Play Again
-                </button>
+                </motion.button>
             </motion.div>
         </>
     )
